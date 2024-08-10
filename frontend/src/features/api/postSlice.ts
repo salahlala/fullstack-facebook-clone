@@ -83,11 +83,16 @@ export const postSlice = apiSlice.injectEndpoints({
         url: "/posts",
         method: "POST",
         body: data,
-        headers: {
-          "Content-Type": "multipart/form-data", // Ensure the server knows you're sending form data
-        },
+        // headers: {
+        //   "Content-Type": "application/json", // Ensure the server knows you're sending form data
+        // },
       }),
-
+      transformErrorResponse: (err: { status: number; data: ApiError }) => {
+        return {
+          status: err.status,
+          message: err.data.message || "some error",
+        };
+      },
       invalidatesTags: [{ type: "Post", id: "LIST" }],
     }),
     addComment: builder.mutation<TPost, { text: string; postId: string }>({
@@ -122,12 +127,26 @@ export const postSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "Post", id: "LIST" }],
     }),
-    updatePost: builder.mutation<TPost, { text: string; postId: string }>({
-      query: (data) => ({
-        url: `/posts/${data.postId}`,
-        method: "PATCH",
-        body: data,
-      }),
+    updatePost: builder.mutation<TPost, FormData>({
+      query: (formData) => {
+        const postId = formData.get("postId") as string;
+
+        return {
+          url: `/posts/${postId}`,
+          method: "PATCH",
+          body: formData,
+        };
+      },
+      transformErrorResponse: (err: { status: number; data: ApiError }) => {
+        return {
+          status: err.status,
+          message: err.data.message || "some error",
+        };
+      },
+      invalidatesTags: (_, __, formData) => {
+        const postId = formData.get("postId") as string;
+        return [{ type: "Post", id: postId }];
+      },
     }),
     deleteComment: builder.mutation({
       query: ({ postId, commentId }) => ({

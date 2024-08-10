@@ -19,6 +19,7 @@ interface PostDialogProps<T> {
   onOpenChange: (open: boolean) => void;
   title: string;
   loading: boolean;
+  deleteCommentLoading?: boolean;
   data: T[];
   renderContent: (item: T) => JSX.Element;
 }
@@ -27,6 +28,7 @@ const PostDialog = <T,>({
   onOpenChange,
   title,
   loading,
+  deleteCommentLoading,
   data,
   renderContent,
 }: PostDialogProps<T>) => {
@@ -37,7 +39,9 @@ const PostDialog = <T,>({
       </DialogTrigger>
       <DialogContent
         aria-describedby={undefined}
-        className="max-h-[calc(100vh-100px)] overflow-y-auto p-0 hide-scrollbar"
+        className={`max-h-[calc(100vh-100px)] overflow-y-auto p-0 hide-scrollbar ${
+          deleteCommentLoading ? "opacity-50 pointer-events-none" : ""
+        }`}
       >
         <DialogHeader className=" sticky top-0 z-20 bg-background p-4">
           <div className="flex items-center justify-between ">

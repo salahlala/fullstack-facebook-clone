@@ -10,6 +10,8 @@ import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 
+import globalErrorHandler from "./controller/errorController.js";
+
 import connectDB from "./db/connectDB.js";
 
 dotenv.config({ path: "./config.env" });
@@ -33,6 +35,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use(globalErrorHandler);
 app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 

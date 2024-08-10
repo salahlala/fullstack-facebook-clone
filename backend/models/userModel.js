@@ -36,7 +36,13 @@ const userSchema = new Schema(
         default: [],
       },
     ],
-    profileImg: { type: String, default: "" },
+    profileImg: {
+      type: Object,
+      default: {
+        public_id: null,
+        url: null,
+      },
+    },
     bio: { type: String, default: "" },
     coverImg: {
       type: String,

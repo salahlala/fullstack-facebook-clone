@@ -13,52 +13,46 @@ import {
   cloudinaryUploadImage,
   cloudinaryDeleteImage,
 } from "../utils/cloudinary.js";
+
 // Get the directory name of the current module file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const multerStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, path.join(__dirname, "..", "public", "images"));
-  },
-  filename: (req, file, cb) => {
-    console.log(file, "file");
-    const ext = file.mimetype.split("/")[1];
-    cb(null, `post-${req.user._id}-${Date.now()}.${ext}`);
-  },
-});
-const multerFilter = (req, file, cb) => {
-  console.log(file, "file.mimetype");
-  if (file.mimetype.startsWith("image")) {
-    cb(null, true);
+// export const uploadImg = upload.single("img");
+
+// Middleware to handle multer errors
+export const errorHandler = (err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    // Handle Multer error
+    res.status(400).send(err.message);
   } else {
-    cb("Please upload only images", false);
+    // Handle other errors
+    console.error(err);
+    res.status(500).send("Internal Server Error");
   }
 };
-const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
-
-export const uploadImg = upload.single("img");
 
 export const resizePostPhoto = async (req, res, next) => {
   try {
     if (!req.file) return next();
-
     console.log(req.file, "req.file");
-    req.file.filename = `post-${Date.now()}.jpeg`;
+
+    req.file.filename = `post-${req.user._id}-${Date.now()}.jpeg`;
+    console.log(req.file.filename, "req.file");
+
     if (!req.file.buffer || req.file.buffer.length === 0) {
       console.log("Empty file buffer");
       return next(new Error("Empty file buffer"));
     }
-
     await sharp(req.file.buffer)
-      // .resize(270, 220)
+      .resize(1080, 1080)
       .toFormat("jpeg")
-      .jpeg({ quality: 90 })
-      .toFile(`../public/images/${req.file.filename}`);
+      .jpeg({ quality: 80 })
+      .toFile(path.join(__dirname, `../public/images/${req.file.filename}`));
 
     next();
   } catch (error) {
-    console.log(error);
+    console.log(error, "from resizePostPhoto");
     return res.status(500).json({ error: error.message });
   }
 };
@@ -75,13 +69,17 @@ export const createPost = async (req, res) => {
     if (!user) {
       return res.status(400).json({ error: "user not found" });
     }
-    if (!text) {
-      return res.status(400).json({ error: "text field is required" });
+    if (!text && !req.file) {
+      return res.status(400).json({ error: "post cannot be empty" });
     }
-    console.log(text, "text");
+
     if (req.file) {
-      console.log(req.file, "req.file");
-      const result = await cloudinaryUploadImage(req.file.path);
+      let imgPath = req.file.filename;
+      curPath = path.join(__dirname, `../public/images/${imgPath}`);
+      console.log(req.file.filename, "req.file");
+      console.log(req.file, "create post controller");
+      const result = await cloudinaryUploadImage(curPath);
+      console.log(result, "result cloudinary");
       img = {
         public_id: result.public_id,
         url: result.secure_url,
@@ -95,10 +93,14 @@ export const createPost = async (req, res) => {
     });
 
     res.status(201).json({ post });
-
   } catch (error) {
-    console.log(error, "from create post");
+    console.log({ error: error }, "from create post");
     res.status(500).json({ error: "Internal Server Error" });
+  }
+
+  if (curPath && fs.existsSync(curPath)) {
+    // console.log("file deleted successfully");
+    fs.unlinkSync(curPath);
   }
 };
 export const deletePost = async (req, res) => {
@@ -113,9 +115,10 @@ export const deletePost = async (req, res) => {
     if (post.user.toString() !== userId.toString()) {
       return res.status(401).json({ error: "unauthorized" });
     }
-    if (post.img?.url) {
-      const imgId = post.img.url.split("/").pop().split(".")[0];
-      await cloudinary.uploader.destroy(imgId);
+    const imgId = post.img?.public_id;
+    if (imgId) {
+      const deleteResutl = await cloudinaryDeleteImage(imgId);
+      console.log(deleteResutl);
     }
     await Post.findByIdAndDelete(id);
     res.status(200).json({ message: "post deleted" });
@@ -147,7 +150,7 @@ export const commentOnPost = async (req, res) => {
     await post.save();
     res.status(200).json({ post });
   } catch (error) {
-    console.log(error)
+    console.log(error);
   }
 };
 
@@ -200,8 +203,9 @@ export const getAllPosts = async (req, res) => {
 
 export const updatePost = async (req, res) => {
   const { id } = req.params;
-  const { text } = req.body;
+  const { text, removeImg } = req.body;
   let curPath;
+
   try {
     const post = await Post.findById(id);
     const userId = req.user._id;
@@ -211,9 +215,17 @@ export const updatePost = async (req, res) => {
     if (post.user.toString() !== userId.toString()) {
       return res.status(401).json({ error: "unauthorized" });
     }
-    if (req.file) {
+    if (removeImg) {
+      const imgId = post.img?.public_id;
+      if (imgId) {
+        await cloudinaryDeleteImage(imgId);
+        post.img = null;
+      }
+    } else if (req.file) {
+      let imgPath = req.file.filename;
+      curPath = path.join(__dirname, `../public/images/${imgPath}`);
       console.log(req.file, "from update post");
-      const result = await cloudinaryUploadImage(req.file.path);
+      const result = await cloudinaryUploadImage(curPath);
       // console.log(result, "result filename");
       const imgId = post.img?.public_id;
       if (imgId) {
@@ -231,8 +243,11 @@ export const updatePost = async (req, res) => {
     await post.save();
     res.status(200).json({ post });
   } catch (error) {
-    console.log(error, "from update post");
+    console.log({ error }, "from update post");
     res.status(500).json({ error: "Internal Server Error" });
+  }
+  if (curPath && fs.existsSync(curPath)) {
+    fs.unlinkSync(curPath);
   }
 };
 
@@ -330,10 +345,9 @@ export const getMyPosts = async (req, res) => {
 export const getLikedPostDetails = async (req, res) => {
   try {
     const { id: postId } = req.params;
-    const post = await Post.findById(postId).populate(
-      "likes",
-      "_id username profileImg"
-    ).select("likes");
+    const post = await Post.findById(postId)
+      .populate("likes", "_id username profileImg")
+      .select("likes");
     res.status(200).json({ data: post });
   } catch (error) {
     console.log(error, "from get likes post details");
@@ -344,10 +358,9 @@ export const getLikedPostDetails = async (req, res) => {
 export const getPostComments = async (req, res) => {
   try {
     const { id: postId } = req.params;
-    const post = await Post.findById(postId).populate(
-      "comments.user",
-      "username profileImg"
-    ).select("comments");
+    const post = await Post.findById(postId)
+      .populate("comments.user", "username profileImg")
+      .select("comments");
     res.status(200).json({ data: post.comments });
   } catch (error) {
     console.log(error, "from get post comments");
@@ -362,19 +375,23 @@ export const deleteComment = async (req, res) => {
     if (!post) {
       return res.status(400).json({ error: "Post not found" });
     }
-    console.log({ post:post.comments, commentId });
-    const comment = post.comments.find((comment) => comment._id.toString() === commentId);
+    console.log({ post: post.comments, commentId });
+    const comment = post.comments.find(
+      (comment) => comment._id.toString() === commentId
+    );
     if (!comment) {
       return res.status(400).json({ error: "Comment not found" });
     }
-    if (comment.user.toString() !== req.user._id.toString() && post.user.toString() !== req.user._id.toString()) {
+    if (
+      comment.user.toString() !== req.user._id.toString() &&
+      post.user.toString() !== req.user._id.toString()
+    ) {
       return res.status(400).json({ error: "You are not authorized" });
     }
-    post.comments = post.comments.filter((comment) => comment._id.toString() !== commentId);
+    post.comments = post.comments.filter(
+      (comment) => comment._id.toString() !== commentId
+    );
     await post.save();
     res.status(200).json({ message: "Comment deleted successfully" });
-    
-  } catch (error) {
-    
-  }
-}
+  } catch (error) {}
+};

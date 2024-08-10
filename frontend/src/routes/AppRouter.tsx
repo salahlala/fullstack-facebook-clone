@@ -8,15 +8,17 @@ import {
 
 import MainLayout from "@layouts/MainLayout";
 import ProtectLayout from "@layouts/ProtectLayout";
-
+import SettingLayout from "@layouts/SettingLayout";
 import Main from "@pages/Main";
 import LoginPage from "@pages/LoginPage";
 import HomePage from "@pages/HomePage";
 import SignupPage from "@pages/SignupPage";
+import SettingPage from "@pages/SettingPage";
 // import { useAppSelector } from "@store/hooks";
 import ProfilePage from "@pages/ProfilePage";
 
 import useAuth from "@hooks/useAuth";
+import ChangePassword from "@components/auth/ChangePassword";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoading, user } = useAuth();
@@ -47,7 +49,6 @@ const RedirectRoute = ({ children }: { children: JSX.Element }) => {
   }, [isLoading, user._id, navigate]);
 
   if (isLoading) return;
-  console.log("from redirect route");
 
   if (!user._id) {
     return children;
@@ -85,6 +86,20 @@ const router = createBrowserRouter([
       {
         path: "profile/:id",
         element: <ProfilePage />,
+      },
+      {
+        path: "setting",
+        element: <SettingLayout />,
+        children: [
+          {
+            index: true,
+            element: <SettingPage />,
+          },
+          {
+            path: "password",
+            element: <ChangePassword />,
+          },
+        ],
       },
     ],
   },

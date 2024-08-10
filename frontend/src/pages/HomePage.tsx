@@ -8,6 +8,7 @@ import useLogoutHandler from "@hooks/useLogoutHandler";
 import { TPost } from "@typesFolder/postType";
 import { ApiError } from "@typesFolder/apiError";
 import Post from "@components/post/Post";
+import Loader from "@components/Loader";
 
 import {
   Carousel,
@@ -17,7 +18,6 @@ import {
   CarouselPrevious,
 } from "@components/ui/carousel";
 import Story from "@components/story/Story";
-
 import { BsThreeDots } from "react-icons/bs";
 import {
   IoMdSettings,
@@ -31,19 +31,6 @@ import { GoVideo } from "react-icons/go";
 
 const HomePage = () => {
   const { data: posts, isLoading, isError, error } = useGetPostsQuery();
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { handleLogout } = useLogoutHandler();
-
-  // useEffect(() => {
-  //   if (isError) {
-  //     const errorRes = error as ApiError;
-  //     if (errorRes.status == 401) {
-  //       console.log("error from home page", errorRes.message);
-  //       handleLogout();
-  //     }
-  //   }
-  // }, [error, isError, navigate, dispatch, handleLogout]);
 
   return (
     <div className="min-h-screen relative bg-background">
@@ -104,7 +91,7 @@ const HomePage = () => {
         <div></div>
       </div> */}
       {/* <Header /> */}
-      <div className="flex md:max-lg:container md:max-lg:mx-auto md:max-lg:px-4">
+      <div className="min-h-screen flex md:max-lg:container md:max-lg:mx-auto md:max-lg:px-4">
         <div className="basis-1/4 p-4  w-full h-[calc(100vh-70px)] hidden xl:flex flex-col gap-4 sticky top-[70px] z-10 ">
           <div className="blur-bg h-full  bg-card rounded-md p-4">
             <div className="text flex items-center justify-between text-card-foreground">
@@ -159,7 +146,9 @@ const HomePage = () => {
             {/* <CarouselNext /> */}
           </Carousel>
           {isLoading ? (
-            <div> Loading...</div>
+            <div>
+              <Loader />
+            </div>
           ) : (
             <div className=" flex gap-3 flex-col ">
               {posts?.map((post: TPost) => (
@@ -197,7 +186,17 @@ const HomePage = () => {
                 <IoMdSettings className="" />
               </div>
             </div>
-            <div className="flex-col flex gap-4">// friend component</div>
+            <div className="flex-col flex gap-4">
+              // friend component
+              <p>tet</p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+              <p>hello world people </p>
+            </div>
           </div>
         </div>
       </div>

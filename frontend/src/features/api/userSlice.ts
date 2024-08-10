@@ -6,7 +6,6 @@ export const userSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getMe: builder.query<TUser, void>({
       query: () => "/auth/me",
-      keepUnusedDataFor: 30,
 
       transformErrorResponse(response: { status: number; data: ApiError }) {
         return {
@@ -14,7 +13,8 @@ export const userSlice = apiSlice.injectEndpoints({
           message: response.data?.message || "Something went wrong",
         };
       },
-      providesTags: [{ type: "User", id: "CURRENT_USER" }],
+      providesTags: (result) =>
+        result ? [{ type: "User", id: result._id }] : [],
     }),
     getUserProfile: builder.query<TUser, string>({
       query: (id) => ({
@@ -25,8 +25,25 @@ export const userSlice = apiSlice.injectEndpoints({
       providesTags: (result) =>
         result ? [{ type: "User", id: result._id }] : [],
     }),
+    updateUserProfile: builder.mutation<TUser, FormData>({
+      query: (data) => ({
+        url: `/users/updateUser`,
+        method: "PATCH",
+        body: data,
+      }),
+      transformErrorResponse: (err: { status: number; data: ApiError }) => {
+        return {
+          status: err.status,
+          message: err.data.message || "some error",
+        };
+      },
+      invalidatesTags: (result) => [{ type: "User", id: result?._id }],
+    }),
   }),
 });
 
-
-export const { useGetMeQuery, useGetUserProfileQuery } = userSlice
+export const {
+  useGetMeQuery,
+  useGetUserProfileQuery,
+  useUpdateUserProfileMutation,
+} = userSlice;

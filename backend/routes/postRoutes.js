@@ -7,7 +7,7 @@ import {
   getAllPosts,
   likeUnlikePost,
   updatePost,
-  uploadImg,
+  resizePostPhoto,
   getLikedPosts,
   getFollowingPosts,
   getUserPosts,
@@ -17,13 +17,13 @@ import {
   getPostComments,
   deleteComment,
 } from "../controller/postController.js";
-
+import upload from "../utils/multerConfig.js";
 const router = express.Router();
 
 router.use(protectRoute);
 // create post
 // router.post("/create", uploadImg, createPost);
-router.post("/", uploadImg, createPost);
+router.post("/", upload.single("img"), resizePostPhoto, createPost);
 // comment on post
 router.post("/comment/:id", commentOnPost);
 // delete post
@@ -34,7 +34,7 @@ router.post("/like/:id", likeUnlikePost);
 // remove the duplicate routes '/'
 router.get("/", getAllPosts);
 // update post
-router.patch("/update/:id", uploadImg, updatePost);
+router.patch("/:id", upload.single("img"), updatePost);
 
 // get like post of the user
 router.get("/like/:id", getLikedPosts);

@@ -7,16 +7,19 @@ export type authType = {
 }
 
 export type TUser = {
-  _id: string
-  username: string
-  email: string
-  fullName: string
-  followers: string[]
-  following: string[]
-  profileImg: string
-  bio: string
-  coverImg: string
-  __v: number
-  updatedAt: Date
-  likedPosts: string[]
-}
+  _id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  followers: string[];
+  following: string[];
+  profileImg: {
+    public_id: string;
+    url: string;
+  };
+  bio: string;
+  coverImg: string;
+  __v: number;
+  updatedAt: Date;
+  likedPosts: string[];
+};

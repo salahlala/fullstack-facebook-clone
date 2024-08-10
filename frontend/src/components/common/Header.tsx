@@ -5,7 +5,7 @@ import { useAppDispatch } from "@store/hooks";
 import { logout as logoutAction } from "@store/authSlice";
 import { apiSlice } from "@features/api/apiSlice";
 import { useLogoutMutation } from "@features/api/authSlice";
-import {  useGetMeQuery } from "@features/api/userSlice";
+import { useGetMeQuery } from "@features/api/userSlice";
 
 import useSignOut from "react-auth-kit/hooks/useSignOut";
 
@@ -18,11 +18,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@components/ui/sheet";
+import { Dialog, DialogTrigger, DialogContent } from "@components/ui/dialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { ModeToggle } from "@components/mode-toggle";
 
 import { FaUserFriends, FaBars } from "react-icons/fa";
@@ -31,7 +33,6 @@ import { GoVideo } from "react-icons/go";
 import { BsFillBellFill, BsMessenger, BsGrid3X3Gap } from "react-icons/bs";
 const Header = () => {
   const [logout] = useLogoutMutation();
-  const signOut = useSignOut();
   const { data } = useGetMeQuery();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -42,10 +43,8 @@ const Header = () => {
         .then(() => {
           console.log("logged out");
         });
-      signOut();
       dispatch(logoutAction());
       dispatch(apiSlice.util.resetApiState());
-
 
       navigate("/login", { replace: true });
     } catch (error) {
@@ -74,12 +73,25 @@ const Header = () => {
           </SheetContent>
         </Sheet>
       </div>
-      <div className="w-full">
-        <Input
-          placeholder="search"
-          className="w-full text-secondary-foreground "
-        />
-      </div>
+      <Dialog>
+        <DialogTrigger className=" ">
+          <div className="text-start bg-background hover:bg-secondary transition-colors duration-100 rounded-md px-4 py-1  md:w-[200px]">
+            search
+          </div>
+        </DialogTrigger>
+        <DialogContent className="">
+          <Input
+            placeholder="search"
+            className="w-full text-secondary-foreground bg-card mt-4"
+          />
+          <div className="mt-4 resultl p-4 ">
+            <p>test</p>
+            <p>test</p>
+            <p>test</p>
+            <p>test</p>
+          </div>
+        </DialogContent>
+      </Dialog>
       <div className="hidden lg:flex items-center gap-4 justify-between w-full text-secondary-foreground">
         <div className="w-[30px] h-[30px] grid place-items-center rounded-md  ">
           <FaUserFriends className="text-2xl" />
@@ -109,7 +121,13 @@ const Header = () => {
         </div>
         <Popover>
           <PopoverTrigger>
-            <div className="w-[30px] h-[30px] bg-black rounded-full "></div>
+            <Avatar>
+              <AvatarImage src={data?.profileImg?.url} />
+              <AvatarFallback>
+                {data?.username.slice(0, 1).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            {/* <div className="w-[30px] h-[30px] bg-black rounded-full "></div> */}
           </PopoverTrigger>
           <PopoverContent className="flex flex-col gap-3 p-2 bg-primary-foreground border-background">
             <Link to={`/app/profile/${data?._id}`} className="block">
@@ -118,10 +136,12 @@ const Header = () => {
                 <MdPerson className="text-2xl" />
               </div>
             </Link>
-            <div className="flex items-center gap-2 cursor-pointer transition hover:bg-black/10 dark:hover:bg-white/10 p-3 rounded-md">
-              <p className="capitalize">setting</p>
-              <MdSettings className="text-2xl" />
-            </div>
+            <Link to="/app/setting" className="block">
+              <div className="flex items-center gap-2 cursor-pointer transition hover:bg-black/10 dark:hover:bg-white/10 p-3 rounded-md">
+                <p className="capitalize">setting</p>
+                <MdSettings className="text-2xl" />
+              </div>
+            </Link>
             <div
               className="flex items-center gap-2 cursor-pointer transition hover:bg-black/10 dark:hover:bg-white/10 p-3 rounded-md"
               onClick={handleLogout}

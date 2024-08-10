@@ -34,7 +34,7 @@ interface postProps {
 }
 const Post = ({ post }: postProps) => {
   const { data } = useGetMeQuery();
-  const [deletePost, { isLoading }] = useDeletePostMutation();
+  const [deletePost, { isLoading, isSuccess }] = useDeletePostMutation();
   const [addLike] = useAddLikeMutation();
   const [addComment, { isLoading: isLoadingComment }] = useAddCommentMutation();
   const [
@@ -86,6 +86,7 @@ const Post = ({ post }: postProps) => {
     setOpenCommentDialog(open);
   };
 
+  // const handleUpdatePost = async()=>{}
   return (
     <div className=" shadow-lg rounded-xl p-6 bg-card">
       <PostHeader
@@ -93,6 +94,7 @@ const Post = ({ post }: postProps) => {
         userId={data?._id}
         isLoading={isLoading}
         onDelete={handleDeletePost}
+        isDeletingSuccess={isSuccess}
       />
 
       <div>

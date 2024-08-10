@@ -1,11 +1,33 @@
-import {Link} from "react-router-dom";
-import { Popover, PopoverContent, PopoverTrigger } from "@components/ui/popover";
-import { Button } from "@components/ui/button";
-
-import { BsThreeDots } from "react-icons/bs";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
-import { TPost } from "@typesFolder/postType";
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { openDialog, closeDialog } from "@store/uiSlice";
+// components
+import PostEditorForm from "@components/post/PostEditorForm";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@components/ui/popover";
+import { Button } from "@components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@components/ui/alert-dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 
+// types
+import { TPost } from "@typesFolder/postType";
+// icons
+import { BsThreeDots } from "react-icons/bs";
 import { MdEdit } from "react-icons/md";
 import { IoReload } from "react-icons/io5";
 import { FaTrashAlt } from "react-icons/fa";
@@ -14,17 +36,51 @@ interface PostHeaderProps {
   post: TPost;
   userId: string | undefined;
   isLoading: boolean;
+  isDeletingSuccess: boolean;
   onDelete: () => void;
- }
+}
 
-const PostHeader = ({post, userId, isLoading, onDelete}: PostHeaderProps) => {
+const PostHeader = ({
+  post,
+  userId,
+  isLoading,
+  onDelete,
+  isDeletingSuccess,
+}: PostHeaderProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [postId, setPostId] = useState("");
+  const [oldText, setOldText] = useState("");
+  const [oldImage, setOldImage] = useState("");
+  const { isDialogOpen, type } = useAppSelector((state) => state.ui);
+  const dispatch = useAppDispatch();
+  const handleOpen = () => {
+    setIsOpen(!isOpen);
+  };
+  useEffect(() => {
+    if (isDeletingSuccess) {
+      setIsOpen(false);
+    }
+  }, [isDeletingSuccess]);
+
+  const handleEditClick = (post: TPost): void => {
+    console.log(post, "from edit click");
+    setPostId(post._id);
+    setOldText(post.text || "");
+    setOldImage(post.img?.url || "");
+    dispatch(openDialog("edit"));
+  };
+
   return (
     <div className="flex items-center justify-between mb-3">
       <div className="flex items-center gap-3">
-        <Link to={`/profile/${post.user._id}`}>
-          <div className="w-[30px] h-[30px] rounded-full bg-primary">
-            <img src="" alt="" className="" />
-          </div>
+        <Link to={`/app/profile/${post.user._id}`}>
+          <Avatar className="w-[60px] h-[60px]">
+            <AvatarImage src={post.user.profileImg?.url || ""} />
+            <AvatarFallback>
+              {post.user.username?.slice(0, 1).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
+          {/* <img src="" alt="" className="" /> */}
         </Link>
 
         <div className="">
@@ -34,43 +90,84 @@ const PostHeader = ({post, userId, isLoading, onDelete}: PostHeaderProps) => {
             </h2>
           </Link>
           <p className="font-medium dark:text-white/60 text-black/60 text-sm">
-            <ReactTimeAgo date={new Date(post?.createdAt)} locale="en-US" />
+            <ReactTimeAgo
+              date={new Date(post?.createdAt || Date.now())}
+              locale="en-US"
+            />
           </p>
-          {/* name 
-                    time 
-                  */}
         </div>
       </div>
 
       {userId === post.user._id && (
-        <Popover>
-          <PopoverTrigger>
-            <BsThreeDots className="dark:text-white/60" />
-          </PopoverTrigger>
-          <PopoverContent>
-            <div className="flex flex-col gap-3">
-              <div className="flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md">
-                <MdEdit className="" />
-                <p>Edit</p>
-              </div>
-              {isLoading && (
-                <Button disabled>
-                  <IoReload className="mr-2 w-4 animate-spin" />
-                  please wait
-                </Button>
-              )}
-              {!isLoading && (
+        <>
+          <Popover open={isOpen} onOpenChange={handleOpen}>
+            <PopoverTrigger>
+              <BsThreeDots className="dark:text-white/60" />
+            </PopoverTrigger>
+            <PopoverContent>
+              <div className="flex flex-col gap-3">
                 <div
-                  className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
-                  onClick={onDelete}
+                  onClick={() => handleEditClick(post)}
+                  className={`${
+                    isLoading && "pointer-events-none"
+                  } flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
                 >
-                  <FaTrashAlt className="" />
-                  <p>Delete</p>
+                  <MdEdit className="" />
+                  <p>Edit</p>
                 </div>
-              )}
-            </div>
-          </PopoverContent>
-        </Popover>
+
+                {isLoading && (
+                  <Button disabled>
+                    <IoReload className="mr-2 w-4 animate-spin" />
+                    please wait
+                  </Button>
+                )}
+                {!isLoading && (
+                  <AlertDialog>
+                    <AlertDialogTrigger>
+                      <div
+                        className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                      >
+                        <FaTrashAlt className="" />
+                        <p>Delete</p>
+                      </div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle className="font-bold">
+                          Delete Post
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Are you sure? This action cannot be undone.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={onDelete}
+                          className="bg-red-500 hover:bg-red-600 text-white"
+                        >
+                          Delete
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
+          {isDialogOpen && postId && type === "edit" && (
+            <PostEditorForm
+              isDialogOpen={isDialogOpen}
+              type="edit"
+              postId={postId}
+              title="Edit"
+              oldText={oldText}
+              oldImage={oldImage}
+              setOldImage={setOldImage}
+            />
+          )}
+        </>
       )}
     </div>
   );

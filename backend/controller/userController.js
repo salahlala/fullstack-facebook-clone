@@ -2,6 +2,18 @@ import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
+import path from "path";
+import sharp from "sharp";
+import { fileURLToPath } from "url";
+import fs from "fs";
+import {
+  cloudinaryUploadImage,
+  cloudinaryDeleteImage,
+} from "../utils/cloudinary.js";
+
+// Get the directory name of the current module file
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const userProfile = async (req, res) => {
   try {
@@ -103,8 +115,9 @@ export const getSuggestedUsers = async (req, res) => {
 export const updateUser = async (req, res) => {
   const { username, fullName, email, currentPassword, newPassword, bio } =
     req.body;
-  let { coverImg, profileImg } = req.body;
+  let { coverImg } = req.body;
   const userId = req.user._id;
+  let curPath;
   try {
     let user = await User.findById(userId).select("+password");
     if (!user) {
@@ -114,57 +127,97 @@ export const updateUser = async (req, res) => {
       (!currentPassword && newPassword) ||
       (!newPassword && currentPassword)
     ) {
-      return res.status(400).json({ error: "fill all fields" });
+      return res.status(400).json({ message: "fill all fields" });
     }
-
+    console.log({ currentPassword, newPassword });
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
         return res
           .status(400)
-          .json({ error: "current password doesn't match" });
+          .json({ status: 400, message: "current password is not correct" });
       }
       if (newPassword.length < 8) {
         return res
           .status(400)
-          .json({ error: "password must be at least 8 char" });
+          .json({ status: 400, message: "password must be at least 8 char" });
       }
 
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);
     }
-    if (profileImg) {
-      if (user.profileImg) {
-        await cloudinary.uploader.destroy(
-          user.profileImg.split("/").pop().split(".")[0]
-        );
+    if (req.file) {
+      const imgPath = req.file.filename;
+      curPath = path.join(__dirname, `../public/images/${imgPath}`);
+      console.log(req.file, "from update user profile img");
+      // if (user.profileImg) {
+      //   await cloudinary.uploader.destroy(
+      //     user.profileImg.split("/").pop().split(".")[0]
+      //   );
+      // }
+      console.log(curPath);
+      const upload = await cloudinaryUploadImage(curPath);
+      const imgId = user.profileImg.public_id;
+      if (imgId) {
+        await cloudinaryDeleteImage(imgId);
       }
-      const upload = await cloudinary.uploader.upload(profileImg);
-      user.profileImg = upload.secure_url;
+      user.profileImg = {
+        public_id: upload?.public_id,
+        url: upload?.secure_url,
+      };
     }
 
-    if (coverImg) {
-      if (user.coverImg) {
-        await cloudinary.uploader.destroy(
-          user.coverImg.split("/").pop().split(".")[0]
-        );
-      }
-      const upload = await cloudinary.uploader.upload(coverImg);
-      user.coverImg = upload.secure_url;
-    }
+    // if (coverImg) {
+    //   if (user.coverImg) {
+    //     await cloudinary.uploader.destroy(
+    //       user.coverImg.split("/").pop().split(".")[0]
+    //     );
+    //   }
+    //   const upload = await cloudinary.uploader.upload(coverImg);
+    //   user.coverImg = upload.secure_url;
+    // }
 
     user.fullName = fullName || user.fullName;
     user.bio = bio || user.bio;
     user.email = email || user.email;
     user.username = username || user.username;
     await user.save();
+    user.password = undefined;
     return res.status(200).json(user);
   } catch (error) {
     console.log("Error in updateUser: ", error.message);
     res.status(500).json({ error: error.message });
   }
-};
 
+  if (curPath && fs.existsSync(curPath)) {
+    // console.log("file deleted successfully");
+    fs.unlinkSync(curPath);
+  }
+};
+export const resizeUserPhoto = async (req, res, next) => {
+  try {
+    if (!req.file) return next();
+    console.log(req.file, "req.file");
+
+    req.file.filename = `user-${req.user._id}-${Date.now()}.jpeg`;
+    console.log(req.file.filename, "req.file");
+
+    if (!req.file.buffer || req.file.buffer.length === 0) {
+      console.log("Empty file buffer");
+      return next(new Error("Empty file buffer"));
+    }
+    await sharp(req.file.buffer)
+      .resize(200, 200)
+      .toFormat("jpeg")
+      .jpeg({ quality: 80 })
+      .toFile(path.join(__dirname, `../public/images/${req.file.filename}`));
+
+    next();
+  } catch (error) {
+    console.log(error, "from resizePostPhoto");
+    return res.status(500).json({ error: error.message });
+  }
+};
 // export const updateUser = async (req, res) => {
 //   const { username, fullName, email, currentPassword, newPassword, bio } =
 //     req.body;

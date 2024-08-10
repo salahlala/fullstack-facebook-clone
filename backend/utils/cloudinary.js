@@ -14,15 +14,20 @@ export const cloudinaryUploadImage = async (file) => {
       folder: "posts",
     };
 
-    const result= await cloudinary.uploader.upload(file, options);
-    console.log(result,'result ')
+    const result = await cloudinary.uploader.upload(file, options);
+    // console.log(result,'result ')
     return result;
   } catch (error) {
-    console.log(error,'from cloudinaryUploadImage');
+    console.log(error, "from cloudinaryUploadImage");
     return null;
   }
 };
 
 export const cloudinaryDeleteImage = async (publicId) => {
-  return await cloudinary.uploader.destroy(publicId);
+  return await cloudinary.uploader
+    .destroy(publicId, {
+      invalidate: true,
+      resource_type: "image",
+    })
+    .catch((err) => console.log(err, "from cloudinaryDeleteImage"));
 };

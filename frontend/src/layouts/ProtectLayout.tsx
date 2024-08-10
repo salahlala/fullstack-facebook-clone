@@ -5,6 +5,7 @@ import { useGetMeQuery } from "@features/api/userSlice";
 import { ApiError } from "@typesFolder/apiError";
 import useLogoutHandler from "@hooks/useLogoutHandler";
 import { useAppSelector } from "@store/hooks";
+import { Toaster } from "@components/ui/toaster";
 const ProtectLayout = () => {
   // const { handleLogout } = useLogoutHandler();
   // const user = useAppSelector((state) => state.auth.user);
@@ -20,6 +21,7 @@ const ProtectLayout = () => {
       <div className="">
         <Outlet />
       </div>
+      <Toaster />
     </div>
   );
 };

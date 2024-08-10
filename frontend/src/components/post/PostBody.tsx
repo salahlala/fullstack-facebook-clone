@@ -3,12 +3,16 @@ import { useAppSelector } from "@store/hooks";
 import { useDeleteCommentMutation } from "@features/api/postSlice";
 
 import type { TPost, TComment } from "@typesFolder/postType";
+
 import PostDialog from "@components/post/PostDialog";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
+import { Button } from "@components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { FaTrashAlt } from "react-icons/fa";
 
@@ -40,28 +44,35 @@ const PostBody = ({
   const [deleteComment, { isLoading }] = useDeleteCommentMutation();
   const renderLikeContent = (user: User) => (
     <div className="flex items-center justify-between !mb-3" key={user._id}>
-      <Link to={`/app/profile/${user._id}`}>
-        <div>
-          <p>{user.username}</p>
-        </div>
-      </Link>
+      <div className="flex items-center gap-3">
+        <Button>add friend</Button>
 
-      <div className="w-[30px] h-[30px] rounded-full bg-primary">
-        <img src={user.profileImg} alt="" />
+        <Link to={`/app/profile/${user._id}`}>
+          <p>{user.username}</p>
+        </Link>
       </div>
+      <Avatar>
+        <AvatarImage src={user.profileImg?.url} />
+        <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
+      </Avatar>
     </div>
   );
 
   const renderCommentContent = (comment: TComment) => (
-    <div className="flex items-center gap-5 !mb-3" key={comment._id}>
-      <div className="w-[30px] h-[30px] rounded-full bg-primary">
-        <img src={comment.user.profileImg} alt="" />
-      </div>
-      <div
-        className={`
-          "opacity-35 pointer-events-none"
-        } flex items-cetner gap-2`}
-      >
+    <div
+      className={`flex items-center gap-5 !mb-3 ${
+        isLoading && "pointer-events-none"
+      }`}
+      key={comment._id}
+    >
+      <Avatar>
+        <AvatarImage src={comment.user.profileImg?.url} />
+        <AvatarFallback>
+          {comment.user.username.charAt(0).toUpperCase()}
+        </AvatarFallback>
+      </Avatar>
+
+      <div className={`flex items-cetner gap-2`}>
         <div className="flex flex-col gap-[2px] bg-card rounded-lg px-3 py-1 min-w-[100px]">
           <Link to={`/app/profile/${comment.user._id}`}>
             <p className="font-bold">{comment.user.username}</p>
@@ -80,7 +91,9 @@ const PostBody = ({
                 onClick={() =>
                   deleteComment({ postId: post._id, commentId: comment._id })
                 }
-                className={`${isLoading && "pointer-events-none opacity-15"} flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                className={`${
+                  isLoading && "pointer-events-none opacity-15"
+                } flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
               >
                 <FaTrashAlt className="" />
                 Delete
@@ -98,12 +111,7 @@ const PostBody = ({
         {post.text}
       </p>
       {post.img?.url && (
-        <img
-          src={post.img.url}
-          alt=""
-          className="w-[500px] h-[600px] mb-3"
-          loading="lazy"
-        />
+        <img src={post.img.url} alt="" className="  mb-3" loading="lazy" />
       )}
 
       <div className="flex justify-between items-center mt-2">
@@ -124,6 +132,7 @@ const PostBody = ({
           renderContent={renderCommentContent}
           loading={loadingComments}
           data={commentsData || []}
+          deleteCommentLoading={isLoading}
         />
 
         {/* <p className="dark:text-white/60 text-black/60">
