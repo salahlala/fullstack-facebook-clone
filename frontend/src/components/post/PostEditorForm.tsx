@@ -101,7 +101,10 @@ const PostEditorForm = ({
   console.log(errorUpdate, "error update");
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleChangeDialog}>
-      <DialogContent aria-describedby={undefined}>
+      <DialogContent
+        aria-describedby={undefined}
+        className="w-[calc(100%-40px)] md:w-full"
+      >
         <DialogHeader>
           <DialogTitle className="mb-2 text-center text-lg">
             {title} Post
@@ -152,10 +155,7 @@ const PostEditorForm = ({
               />
             )}
             {handleDisplayErrorMessage()}
-            <Button
-              disabled={loading || (!text && !image)}
-              className="!mt-4 shadow-md transition bg-primary text-white hover:bg-card hover:text-black dark:bg-card dark:text-white dark:hover:bg-primary dark:hover:text-black "
-            >
+            <Button disabled={loading || (!text && !image)} className="button ">
               {loading
                 ? "Loading..."
                 : type == "edit"
@@ -170,3 +170,4 @@ const PostEditorForm = ({
 };
 
 export default PostEditorForm;
+// !mt-4 shadow-md transition bg-primary text-white hover:bg-card hover:text-black dark:bg-card dark:text-white dark:hover:bg-primary dark:hover:text-black

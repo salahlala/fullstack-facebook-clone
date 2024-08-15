@@ -1,57 +1,36 @@
 import { useParams } from "react-router-dom";
-import Header from "@components/profile/Header";
-import Post from "@components/post/Post";
-import PostEditorForm from "@components/post/PostEditorForm";
-import Loader from "@components/Loader";
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-
-import { openDialog } from "@store/uiSlice";
-import { useAppDispatch, useAppSelector } from "@store/hooks";
 
 import {
   useGetUserPostsQuery,
   useGetMyPostsQuery,
 } from "@features/api/postSlice";
-import { useGetMeQuery } from "@features/api/userSlice";
+import { useGetMeQuery, useGetUserProfileQuery } from "@features/api/userSlice";
+
+import CreatePost from "@components/post/CreatePost";
+import Header from "@components/profile/Header";
+import Post from "@components/post/Post";
+import Loader from "@components/Loader";
+import FriendList from "@components/user/FriendList";
 const ProfilePage = () => {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useAppDispatch();
-  const { isDialogOpen, type } = useAppSelector((state) => state.ui);
 
   const { data: userLogin } = useGetMeQuery();
   const isMyProfile = userLogin?._id === id;
   const myPostsQuery = useGetMyPostsQuery(undefined, { skip: !isMyProfile });
   const userPostsQuery = useGetUserPostsQuery(id!, { skip: isMyProfile });
-
+  const { data: userProfile } = useGetUserProfileQuery(id!, {
+    skip: isMyProfile,
+  });
   const { data: posts, isLoading: postsLoading } = isMyProfile
     ? myPostsQuery
     : userPostsQuery;
 
-  // console.log(posts, "posts");
-  const handleOpenDialog = () => {
-    dispatch(openDialog("create"));
-  };
   return (
     <div className="min-h-screen pt-[70px] container mx-auto px-4">
       <Header id={id!} />
-      <div className="flex gap-4 mt-3">
-        <div className="basis-1/2  p-4 ">
-          {isMyProfile && (
-            <div className="flex items-center gap-2 p-4 shadow  rounded bg-card mb-3">
-              <p
-                className="bg-secondary cursor-pointer w-full py-2 px-3 rounded-full hover:bg-background duration-300 transition-colors"
-                onClick={handleOpenDialog}
-              >
-                Write a post
-              </p>
-              <Avatar>
-                <AvatarImage src={userLogin?.profileImg?.url || ""} />
-                <AvatarFallback>
-                  {userLogin?.username?.slice(0, 1).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </div>
-          )}
+      <div className="flex-col md:flex-row flex gap-4 mt-3">
+        <div className="basis-1/2 ">
+          {isMyProfile && <CreatePost id={id} />}
           {postsLoading ? (
             <div>
               <Loader />
@@ -64,15 +43,28 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
-        <div className="friends-list"></div>
+        <div className="friends-list basis-1/2 bg-card rounded-md ">
+          <div className="p-4">
+            <h1 className="text-2xl font-bold">Followers</h1>
+            {/* length of friends */}
+            <span className=" text-gray-500">30 Followers</span>
+            {/* {isMyProfile &&
+              userLogin?.followers?.map((user) => (
+                <FriendList key={user._id} user={user} />
+              ))}
+            {userProfile?.followers?.map((user) => (
+              <FriendList key={user._id} user={user} />
+            ))} */}
+          </div>
+        </div>
       </div>
-      {isMyProfile && type === "create" && (
+      {/* {isMyProfile && type === "create" && (
         <PostEditorForm
           isDialogOpen={isDialogOpen}
           type="create"
           title="Create"
         />
-      )}
+      )} */}
       {/* <CreatePost /> */}
     </div>
   );

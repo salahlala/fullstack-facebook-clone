@@ -31,6 +31,7 @@ import { BsThreeDots } from "react-icons/bs";
 import { MdEdit } from "react-icons/md";
 import { IoReload } from "react-icons/io5";
 import { FaTrashAlt } from "react-icons/fa";
+import { ImSpinner2 } from "react-icons/im";
 
 interface PostHeaderProps {
   post: TPost;
@@ -118,7 +119,7 @@ const PostHeader = ({
 
                 {isLoading && (
                   <Button disabled>
-                    <IoReload className="mr-2 w-4 animate-spin" />
+                    <ImSpinner2 className="mr-2 w-4 animate-spin" />
                     please wait
                   </Button>
                 )}
@@ -132,7 +133,7 @@ const PostHeader = ({
                         <p>Delete</p>
                       </div>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="w-[calc(100%-40px)] md:w-full">
                       <AlertDialogHeader>
                         <AlertDialogTitle className="font-bold">
                           Delete Post

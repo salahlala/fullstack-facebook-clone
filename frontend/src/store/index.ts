@@ -2,10 +2,12 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import { apiSlice } from "@features/api/apiSlice";
 import authSlice from "@store/authSlice";
 import uiSlice from "@store/uiSlice";
+import dialogUiSlice from "@store/dialogUiSlice";
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
   auth: authSlice,
   ui: uiSlice,
+  dialog: dialogUiSlice,
 });
 
 export const store = configureStore({

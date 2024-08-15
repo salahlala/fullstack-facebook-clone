@@ -11,8 +11,8 @@ export type TUser = {
   username: string;
   email: string;
   fullName: string;
-  followers: string[];
-  following: string[];
+  followers: TUser[];
+  following: TUser[];
   profileImg: {
     public_id: string;
     url: string;

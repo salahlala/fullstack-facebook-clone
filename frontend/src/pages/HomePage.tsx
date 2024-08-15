@@ -1,36 +1,40 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router";
 import { useGetPostsQuery } from "@features/api/postSlice";
-import { useAppDispatch } from "@store/hooks";
+import {
+  useGetMeQuery,
+  useGetSuggestedUsersQuery,
+} from "@features/api/userSlice";
+import { useAppSelector } from "@store/hooks";
+import type { TPost } from "@typesFolder/postType";
+import type { TUser } from "@typesFolder/authType";
 
-import useLogoutHandler from "@hooks/useLogoutHandler";
-
-import { TPost } from "@typesFolder/postType";
-import { ApiError } from "@typesFolder/apiError";
 import Post from "@components/post/Post";
 import Loader from "@components/Loader";
+import Story from "@components/story/Story";
+import CreatePost from "@components/post/CreatePost";
+import FriendList from "@components/user/FriendList";
 
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
 } from "@components/ui/carousel";
-import Story from "@components/story/Story";
-import { BsThreeDots } from "react-icons/bs";
 import {
   IoMdSettings,
   IoMdSearch,
   IoMdVideocam,
   IoIosArrowDown,
 } from "react-icons/io";
-import { FaUserFriends, FaBars } from "react-icons/fa";
+import { FaUserFriends } from "react-icons/fa";
 import { MdGroups2 } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
-
+import { BsThreeDots } from "react-icons/bs";
+import { ImSpinner2 } from "react-icons/im";
 const HomePage = () => {
   const { data: posts, isLoading, isError, error } = useGetPostsQuery();
+  const { data: user } = useGetMeQuery();
+  const { data: suggestedUser, isLoading: suggestedUserLoading } =
+    useGetSuggestedUsersQuery();
+  const { isDialogOpen } = useAppSelector((state) => state.ui);
 
   return (
     <div className="min-h-screen relative bg-background">
@@ -145,6 +149,7 @@ const HomePage = () => {
             {/* <CarouselPrevious /> */}
             {/* <CarouselNext /> */}
           </Carousel>
+          <CreatePost />
           {isLoading ? (
             <div>
               <Loader />
@@ -157,7 +162,7 @@ const HomePage = () => {
             </div>
           )}
         </div>
-        <div className="right basis-1/4 hidden xl:block h-[calc(100vh-70px)] p-4  sticky top-[70px]">
+        <div className="right  basis-1/4 hidden xl:block h-[calc(100vh-70px)] p-4  sticky top-[70px]">
           <div className="flex items-cetner gap-4">
             {/* 
             -user img 
@@ -177,8 +182,8 @@ const HomePage = () => {
 
             <div className="w-[30px] h-[30px] bg-white rounded-full "></div> */}
           </div>
-          <div className="contacts  p-4 bg-card rounded-md">
-            <div className="text flex justify-between items-center text-card-foreground">
+          <div className="contacts  p-4 bg-card rounded-md mb-4">
+            <div className=" flex justify-between items-center text-card-foreground mb-4">
               <h2 className="font-bold   text-2xl">Contacts</h2>
               <div className="items-center flex gap-4">
                 <IoMdVideocam className="" />
@@ -187,15 +192,24 @@ const HomePage = () => {
               </div>
             </div>
             <div className="flex-col flex gap-4">
-              // friend component
-              <p>tet</p>
-              <p>hello world people </p>
-              <p>hello world people </p>
-              <p>hello world people </p>
-              <p>hello world people </p>
-              <p>hello world people </p>
-              <p>hello world people </p>
-              <p>hello world people </p>
+              {user?.following?.map((user: TUser) => (
+                <FriendList key={user._id} user={user} />
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 bg-card rounded-md">
+            <h2 className="font-bold   text-2xl mb-1">suggested User</h2>
+            <div className="flex-col flex gap-4">
+              {suggestedUser?.map((user: TUser) => (
+                <FriendList key={user._id} user={user} type="follow" />
+              ))}
+              {!suggestedUserLoading && suggestedUser?.length === 0 && (
+                <p>No users found</p>
+              )}
+              {suggestedUserLoading && (
+                <ImSpinner2 className="text-center text-2xl animate-spin" />
+              )}
             </div>
           </div>
         </div>

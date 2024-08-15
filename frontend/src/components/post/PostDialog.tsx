@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useAppSelector } from "@store/hooks";
 import type { TPost, TComment } from "@typesFolder/postType";
+
 import { IoClose, IoReload } from "react-icons/io5";
+import { ImSpinner2 } from "react-icons/im";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +21,7 @@ interface PostDialogProps<T> {
   post: TPost;
   onOpenChange: (open: boolean) => void;
   title: string;
+  type: "likesDialog" | "commentDetailsDialog" | "addCommentDialog";
   loading: boolean;
   deleteCommentLoading?: boolean;
   data: T[];
@@ -27,19 +31,24 @@ const PostDialog = <T,>({
   post,
   onOpenChange,
   title,
+  type,
   loading,
   deleteCommentLoading,
   data,
   renderContent,
 }: PostDialogProps<T>) => {
+  const dialogData = useAppSelector((state) => state.dialog[post._id]);
+  const isOpen = dialogData?.[type] || false;
+
+  console.log({ dialogData, isOpen });
   return (
-    <Dialog onOpenChange={onOpenChange}>
+    <Dialog onOpenChange={onOpenChange} open={isOpen}>
       <DialogTrigger>
         <p className="dark:text-white/60 text-black/60">{title}</p>
       </DialogTrigger>
       <DialogContent
         aria-describedby={undefined}
-        className={`max-h-[calc(100vh-100px)] overflow-y-auto p-0 hide-scrollbar ${
+        className={`max-h-[calc(100vh-100px)] w-[calc(100%-40px)] md:w-full overflow-y-auto p-0 hide-scrollbar ${
           deleteCommentLoading ? "opacity-50 pointer-events-none" : ""
         }`}
       >
@@ -52,7 +61,7 @@ const PostDialog = <T,>({
           </div>
           {loading && (
             <div className="flex justify-center items-center">
-              <IoReload className="text-center text-2xl animate-spin" />
+              <ImSpinner2 className="text-center text-2xl animate-spin" />
             </div>
           )}
           {/* loop on data array and show user  */}

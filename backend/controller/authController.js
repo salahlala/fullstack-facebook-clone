@@ -107,7 +107,10 @@ export const logout = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id).populate(
+      "following",
+      "_id username profileImg fullName"
+    );
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

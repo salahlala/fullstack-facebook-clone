@@ -15,7 +15,7 @@ import { Label } from "@components/ui/label";
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [login, { isLoading, error, isError }] = useLoginMutation();
-  const signIn = useSignIn();
+  // const signIn = useSignIn();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -33,16 +33,16 @@ const Login = () => {
     try {
       const data = await login(formData).unwrap();
       const { _id, email, username } = data.data;
-      signIn({
-        auth: {
-          token: data.token,
-          // type: "Bearer",
-        },
-        userState: {
-          uid: _id,
-          name: username,
-        },
-      });
+      // signIn({
+      //   auth: {
+      //     token: data.token,
+      //     // type: "Bearer",
+      //   },
+      //   userState: {
+      //     uid: _id,
+      //     name: username,
+      //   },
+      // });
       dispatch(
         loginAction({
           _id: _id,

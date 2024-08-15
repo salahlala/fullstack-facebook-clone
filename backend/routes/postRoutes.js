@@ -34,7 +34,7 @@ router.post("/like/:id", likeUnlikePost);
 // remove the duplicate routes '/'
 router.get("/", getAllPosts);
 // update post
-router.patch("/:id", upload.single("img"), updatePost);
+router.patch("/:id", upload.single("img"), resizePostPhoto, updatePost);
 
 // get like post of the user
 router.get("/like/:id", getLikedPosts);

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
 import bcrypt from "bcryptjs";
@@ -20,7 +21,9 @@ export const userProfile = async (req, res) => {
     // const { username } = req.params;
     // const user = await User.findOne({ username });
     const { id } = req.params;
-    const user = await User.findOne({ _id: id });
+    const user = await User.findOne({ _id: id })
+      .populate("followers", "username profileImg fullName")
+      .populate("following", "username profileImg fullName");
 
     if (!user) {
       return res.status(404).json({ message: "no user with this name" });
@@ -87,13 +90,34 @@ export const getSuggestedUsers = async (req, res) => {
   try {
     const userId = req.user._id;
 
-    const userFollowedBy = await User.findById(userId).select(following);
+    const userFollowedBy = await User.findById(userId).select("following");
 
-    const users = await User.aggregate([
+    if (!userFollowedBy) {
+      return res.status(404).json({ error: "user not found" });
+    }
+    const id = mongoose.Types.ObjectId(userId);
+
+    let users = await User.aggregate([
       {
         $match: {
-          _id: { $ne: userId },
+          // _id: { $ne: id },
+          _id: { $nin: userFollowedBy.following },
         },
+      },
+
+      {
+        $project: {
+          username: 1,
+          fullName: 1,
+          email: 1,
+          profileImg: 1,
+          following: 1,
+          followers: 1,
+        },
+      },
+      // Add a $sort stage to get a consistent order
+      {
+        $sort: { _id: 1 },
       },
       // return only 10 values
       {
@@ -101,11 +125,8 @@ export const getSuggestedUsers = async (req, res) => {
       },
     ]);
     // filter users not contains in the following array
-    const filteredUser = users.filter((u) => !userFollowedBy.includes(u._id));
-
-    const suggestedUser = filteredUser.slice(0, 4);
-
-    res.status(200).json({ data: suggestedUser });
+    users = users.filter((u) => u._id.toString() !== userId.toString());
+    res.status(200).json({ data: users });
   } catch (error) {
     console.log(`error in  getSuggestedUsers ${error}`);
     res.status(500).json({ error: "internal server error" });
@@ -218,6 +239,28 @@ export const resizeUserPhoto = async (req, res, next) => {
     return res.status(500).json({ error: error.message });
   }
 };
+
+export const findUsersByQuery = async (req, res) => {
+  try {
+    const { name } = req.query;
+    if (!name || typeof name !== "string") {
+      return res.status(400).json({
+        message: "Invalid query parameter: name must be a non-empty string",
+      });
+    }
+    const users = await User.find({
+      $or: [
+        { username: { $regex: name, $options: "i" } },
+        { fullName: { $regex: name, $options: "i" } },
+      ],
+    }).limit(5);
+    res.status(200).json({ data: users });
+  } catch (error) {
+    console.log(error, "from getUserWithSearch");
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // export const updateUser = async (req, res) => {
 //   const { username, fullName, email, currentPassword, newPassword, bio } =
 //     req.body;

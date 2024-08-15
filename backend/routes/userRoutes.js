@@ -5,6 +5,7 @@ import {
   updateUser,
   userProfile,
   resizeUserPhoto,
+  findUsersByQuery,
 } from "../controller/userController.js";
 import { protectRoute } from "../middleware/protectRoute.js";
 import upload from "../utils/multerConfig.js";
@@ -15,6 +16,7 @@ router.use(protectRoute);
 router.get("/profile/:id", userProfile);
 router.post("/follow/:id", followUnfollowUser);
 router.get("/suggested", getSuggestedUsers);
+router.get("/search-users", findUsersByQuery);
 router.patch(
   "/updateUser",
   upload.single("profileImg"),

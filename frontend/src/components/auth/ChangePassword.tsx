@@ -77,6 +77,7 @@ const ChangePassword = () => {
           <Button
             type="submit"
             disabled={isLoading || !currentPassword || !NewPassword}
+            className="dark:bg-background button"
           >
             Change Password
           </Button>

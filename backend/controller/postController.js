@@ -223,8 +223,8 @@ export const updatePost = async (req, res) => {
       }
     } else if (req.file) {
       let imgPath = req.file.filename;
+      console.log(req.file, "from update image");
       curPath = path.join(__dirname, `../public/images/${imgPath}`);
-      console.log(req.file, "from update post");
       const result = await cloudinaryUploadImage(curPath);
       // console.log(result, "result filename");
       const imgId = post.img?.public_id;
@@ -240,6 +240,7 @@ export const updatePost = async (req, res) => {
     if (text) {
       post.text = text;
     }
+    console.log({ post }, "from update post");
     await post.save();
     res.status(200).json({ post });
   } catch (error) {
@@ -346,7 +347,7 @@ export const getLikedPostDetails = async (req, res) => {
   try {
     const { id: postId } = req.params;
     const post = await Post.findById(postId)
-      .populate("likes", "_id username profileImg")
+      .populate("likes", "_id username profileImg following")
       .select("likes");
     res.status(200).json({ data: post });
   } catch (error) {

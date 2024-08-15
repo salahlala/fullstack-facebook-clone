@@ -13,7 +13,7 @@ export const cloudinaryUploadImage = async (file) => {
     const options = {
       folder: "posts",
     };
-
+    console.log({ file });
     const result = await cloudinary.uploader.upload(file, options);
     // console.log(result,'result ')
     return result;

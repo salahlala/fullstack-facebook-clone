@@ -137,6 +137,7 @@ const SettingPage = () => {
           <Button
             type="submit"
             disabled={isLoadingUpdate || !username || !email}
+            className="button dark:bg-background"
           >
             Update
           </Button>

@@ -9,21 +9,27 @@ import {
 import MainLayout from "@layouts/MainLayout";
 import ProtectLayout from "@layouts/ProtectLayout";
 import SettingLayout from "@layouts/SettingLayout";
+
 import Main from "@pages/Main";
 import LoginPage from "@pages/LoginPage";
 import HomePage from "@pages/HomePage";
 import SignupPage from "@pages/SignupPage";
 import SettingPage from "@pages/SettingPage";
-// import { useAppSelector } from "@store/hooks";
 import ProfilePage from "@pages/ProfilePage";
 
-import useAuth from "@hooks/useAuth";
 import ChangePassword from "@components/auth/ChangePassword";
-
+import useAuth from "@hooks/useAuth";
+import { closeAllDialogs } from "@store/dialogUiSlice";
+import { useAppDispatch } from "@store/hooks";
+import { useLocation } from "react-router-dom";
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoading, user } = useAuth();
   // const { user } = useAppSelector((state) => state.auth);
-
+  const location = useLocation();
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(closeAllDialogs());
+  }, [location.pathname, dispatch]);
   if (!isLoading && !user?._id) {
     console.log("triggre protect route");
     return <Navigate to="/login" replace />;

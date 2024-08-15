@@ -1,14 +1,19 @@
 import { useNavigate } from "react-router";
-import { Link } from "react-router-dom";
-
+import { Link, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { useAppDispatch } from "@store/hooks";
 import { logout as logoutAction } from "@store/authSlice";
 import { apiSlice } from "@features/api/apiSlice";
 import { useLogoutMutation } from "@features/api/authSlice";
-import { useGetMeQuery } from "@features/api/userSlice";
+import {
+  useGetMeQuery,
+  useSearchUsersQuery,
+  useLazySearchUsersQuery,
+} from "@features/api/userSlice";
 
 import useSignOut from "react-auth-kit/hooks/useSignOut";
 
+import SearchList from "@components/user/SearchList";
 import { Input } from "@components/ui/input";
 import {
   Sheet,
@@ -18,7 +23,12 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@components/ui/sheet";
-import { Dialog, DialogTrigger, DialogContent } from "@components/ui/dialog";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+} from "@components/ui/dialog";
 import {
   Popover,
   PopoverContent,
@@ -31,11 +41,24 @@ import { FaUserFriends, FaBars } from "react-icons/fa";
 import { MdGroups2, MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
 import { BsFillBellFill, BsMessenger, BsGrid3X3Gap } from "react-icons/bs";
+import { IoMdSearch } from "react-icons/io";
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
+  const [name, setName] = useState("");
+  const [debonceName, setDebonceName] = useState("");
+  const [open, setOpen] = useState(false);
+  const { data: usersData, isLoading: isSearchLoading } = useSearchUsersQuery(
+    debonceName,
+    {
+      skip: debonceName.length < 1,
+    }
+  );
+
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
+  const location = useLocation();
+
   const handleLogout = async () => {
     try {
       await logout()
@@ -52,6 +75,20 @@ const Header = () => {
     }
   };
 
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebonceName(name);
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [name]);
+
+  const handleDialogChange = (open: boolean) => {
+    setOpen(open);
+  };
+  useEffect(() => {
+    setOpen(false);
+    setName("");
+  }, [location]);
   return (
     <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between gap-7 ">
       <Link to="/app">
@@ -73,22 +110,22 @@ const Header = () => {
           </SheetContent>
         </Sheet>
       </div>
-      <Dialog>
+      <Dialog open={open} onOpenChange={handleDialogChange}>
         <DialogTrigger className=" ">
-          <div className="text-start bg-background hover:bg-secondary transition-colors duration-100 rounded-md px-4 py-1  md:w-[200px]">
+          <div className="md:block hidden text-start bg-background hover:bg-secondary transition-colors duration-100 rounded-md px-4 py-1  md:w-[200px]">
             search
           </div>
+          <IoMdSearch className="text-2xl md:hidden" />
         </DialogTrigger>
-        <DialogContent className="">
+        <DialogContent className="" aria-describedby={undefined}>
+          <DialogTitle className="text-center">Search</DialogTitle>
           <Input
             placeholder="search"
             className="w-full text-secondary-foreground bg-card mt-4"
+            onChange={(e) => setName(e.target.value)}
           />
           <div className="mt-4 resultl p-4 ">
-            <p>test</p>
-            <p>test</p>
-            <p>test</p>
-            <p>test</p>
+            <SearchList users={usersData} isSearchLoading={isSearchLoading} />
           </div>
         </DialogContent>
       </Dialog>
@@ -116,9 +153,7 @@ const Header = () => {
         <div className="w-[30px] h-[30px] grid place-items-center  ">
           <BsMessenger className="" />
         </div>
-        <div className="w-[30px] h-[30px] grid place-items-center  ">
-          <BsGrid3X3Gap className="" />
-        </div>
+
         <Popover>
           <PopoverTrigger>
             <Avatar>

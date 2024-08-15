@@ -1,6 +1,7 @@
 import { apiSlice } from "@features/api/apiSlice";
 import { TPost, TComment } from "@typesFolder/postType";
 import { ApiError } from "@typesFolder/apiError";
+import { store } from "@store/index";
 
 export const postSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -23,16 +24,6 @@ export const postSlice = apiSlice.injectEndpoints({
 
         return [...postTags, { type: "Post", id: "LIST" }];
       },
-
-      // result
-      //   ? [
-      //       ...result.map(({ _id }) => ({
-      //         type: "Post" as const,
-      //         id: _id,
-      //       })),
-      //       { type: "Post", id: "LIST" },
-      //     ]
-      //   : [{ type: "Post", id: "LIST" }],
     }),
 
     getMyPosts: builder.query<TPost[], void>({
@@ -83,9 +74,6 @@ export const postSlice = apiSlice.injectEndpoints({
         url: "/posts",
         method: "POST",
         body: data,
-        // headers: {
-        //   "Content-Type": "application/json", // Ensure the server knows you're sending form data
-        // },
       }),
       transformErrorResponse: (err: { status: number; data: ApiError }) => {
         return {
@@ -102,21 +90,26 @@ export const postSlice = apiSlice.injectEndpoints({
         body: data,
       }),
 
-      invalidatesTags: (_, __, { postId }) => [
-        { type: "Post", id: postId },
-        { type: "User", id: "CURRENT_USER" },
-      ],
+      invalidatesTags: (_, __, { postId }) => {
+        const userId = store.getState().auth.user._id;
+        return [
+          { type: "Post", id: postId },
+          { type: "User", id: userId },
+        ];
+      },
     }),
     addLike: builder.mutation<TPost, { id: string }>({
       query: ({ id }) => ({
         url: `/posts/like/${id}`,
         method: "POST",
       }),
-      invalidatesTags: (_, __, { id }) => [
-        { type: "Post", id },
-        { type: "User", id: "CURRENT_USER" },
-      ],
-      // invalidatesTags: [{ type: "Post", id: "LIST" }],
+      invalidatesTags: (_, __, { id }) => {
+        const userId = store.getState().auth.user._id;
+        return [
+          { type: "Post", id },
+          { type: "User", id: userId },
+        ];
+      },
     }),
 
     // }),
@@ -153,10 +146,13 @@ export const postSlice = apiSlice.injectEndpoints({
         url: `/posts/comment/${postId}/${commentId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (_, __, { postId }) => [
-        { type: "Post", id: postId },
-        { type: "User", id: "CURRENT_USER" },
-      ],
+      invalidatesTags: (_, __, { postId }) => {
+        const userId = store.getState().auth.user._id;
+        return [
+          { type: "Post", id: postId },
+          { type: "User", id: userId },
+        ];
+      },
     }),
   }),
 });
