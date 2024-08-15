@@ -108,14 +108,16 @@ const Post = ({ post }: postProps) => {
   };
   const handleOpenCommentDialog = (open: boolean) => {
     // setOpenCommentDialog(open);
-    if (open)
+    if (open) {
       dispatch(
         openDialog({ postId: post._id, dialogType: "addCommentDialog" })
       );
-    else
+    } else {
       dispatch(
         closeDialog({ postId: post._id, dialogType: "addCommentDialog" })
       );
+    }
+
     // if (!open) dispatch(closeDialog("comment"));
   };
 

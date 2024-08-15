@@ -40,7 +40,6 @@ const PostDialog = <T,>({
   const dialogData = useAppSelector((state) => state.dialog[post._id]);
   const isOpen = dialogData?.[type] || false;
 
-  console.log({ dialogData, isOpen });
   return (
     <Dialog onOpenChange={onOpenChange} open={isOpen}>
       <DialogTrigger>

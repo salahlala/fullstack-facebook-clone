@@ -12,7 +12,6 @@ const CreatePost = ({ id }: { id?: string }) => {
   const { isDialogOpen, type } = useAppSelector((state) => state.ui);
 
   const isMyProfile = userLogin?._id === id;
-  console.log(location);
   const handleOpenDialog = () => {
     dispatch(openDialog("create"));
   };

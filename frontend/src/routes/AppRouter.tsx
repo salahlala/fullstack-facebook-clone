@@ -19,17 +19,10 @@ import ProfilePage from "@pages/ProfilePage";
 
 import ChangePassword from "@components/auth/ChangePassword";
 import useAuth from "@hooks/useAuth";
-import { closeAllDialogs } from "@store/dialogUiSlice";
-import { useAppDispatch } from "@store/hooks";
-import { useLocation } from "react-router-dom";
+
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoading, user } = useAuth();
-  // const { user } = useAppSelector((state) => state.auth);
-  const location = useLocation();
-  const dispatch = useAppDispatch();
-  useEffect(() => {
-    dispatch(closeAllDialogs());
-  }, [location.pathname, dispatch]);
+
   if (!isLoading && !user?._id) {
     console.log("triggre protect route");
     return <Navigate to="/login" replace />;

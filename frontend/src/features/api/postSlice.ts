@@ -40,6 +40,21 @@ export const postSlice = apiSlice.injectEndpoints({
             ]
           : [{ type: "Post", id: "LIST" }],
     }),
+
+    getFollowingPosts: builder.query<TPost[], void>({
+      query: () => "/posts/following",
+      transformResponse: (response: { data: TPost[] }) => response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ _id }) => ({
+                type: "Post" as const,
+                id: _id,
+              })),
+              { type: "Post", id: "LIST" },
+            ]
+          : [{ type: "Post", id: "LIST" }],
+    }),
     getUserPosts: builder.query<TPost[], string>({
       query: (id: string) => `/posts/user/id/${id}`,
       transformResponse: (response: { data: TPost[] }) => response.data,
@@ -159,10 +174,12 @@ export const postSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetPostsQuery,
+  useGetFollowingPostsQuery,
   useGetMyPostsQuery,
   useGetUserPostsQuery,
   useGetLikedPostsQuery,
   useGetLikedPostDetailsQuery,
+
   useLazyGetLikedPostDetailsQuery,
   useGetPostCommentsQuery,
   useLazyGetPostCommentsQuery,

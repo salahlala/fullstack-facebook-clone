@@ -53,7 +53,6 @@ const PostEditorForm = ({
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      console.log(file, "file from input");
       setImage(file);
     }
   };
@@ -98,7 +97,6 @@ const PostEditorForm = ({
     }
     return <></>;
   };
-  console.log(errorUpdate, "error update");
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleChangeDialog}>
       <DialogContent

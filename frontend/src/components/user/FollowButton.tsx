@@ -9,13 +9,11 @@ const FollowButton = ({ id }: { id: string }) => {
   const checkFollowing = userLogin?.following.find((user) => user._id === id);
   const handleFollowUser = async () => {
     try {
-      const data = await followUser(id).unwrap();
-      console.log(data);
+      await followUser(id).unwrap();
     } catch (error) {
       console.log(error);
     }
   };
-  console.log({ isLoading }, "from follow button");
   return (
     <div className={`${userLogin?._id === id ? "hidden" : "block"}`}>
       {checkFollowing ? (

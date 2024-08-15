@@ -1,6 +1,8 @@
 import { generateTokenAndSetCookie } from "../lib/generateToken.js";
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
+
+const USER_LIMIT = 20;
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -42,6 +44,10 @@ const checkExistUser = async (email, username) => {
 };
 export const signup = async (req, res) => {
   try {
+    const userCount = await User.countDocuments();
+    if (userCount >= USER_LIMIT) {
+      return res.status(400).json({ message: "User limit reached" });
+    }
     const { username, fullName, email, password } = req.body;
 
     if (!username || !fullName || !email || !password) {
@@ -74,7 +80,7 @@ export const signup = async (req, res) => {
     });
 
     if (newUser) {
-      generateTokenAndSetCookie(newUser._id, res);
+      // generateTokenAndSetCookie(newUser._id, res);
       await newUser.save();
       return res.status(201).json({
         _id: newUser._id,

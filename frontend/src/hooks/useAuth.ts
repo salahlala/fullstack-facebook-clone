@@ -16,7 +16,6 @@ const useAuth = () => {
 
   useEffect(() => {
     if (!isError && !isLoading && data?._id) {
-      console.log("hook trigger");
       dispatch(
         loginAction({
           _id: data._id,
@@ -24,7 +23,6 @@ const useAuth = () => {
           username: data.username,
         })
       );
-      console.log(location.pathname, "location");
       navigate(location.pathname, { replace: true });
     } else if (isError && !isLoading && !data?._id && !user?._id) {
       if (

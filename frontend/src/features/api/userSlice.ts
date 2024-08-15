@@ -30,6 +30,7 @@ export const userSlice = apiSlice.injectEndpoints({
       query: (query) => ({
         url: `/users/search-users?name=${query}`,
       }),
+      keepUnusedDataFor: 0,
       transformResponse: (response: { data: TUser[] }) => response.data,
     }),
     getSuggestedUsers: builder.query<TUser[], void>({
@@ -37,8 +38,9 @@ export const userSlice = apiSlice.injectEndpoints({
         url: "/users/suggested",
       }),
       transformResponse: (response: { data: TUser[] }) => response.data,
-      providesTags: (result) =>
-        (result || []).map((user) => ({ type: "User", id: user._id })),
+      // providesTags: (result) =>
+      //   (result || []).map((user) => ({ type: "User", id: user._id })),
+      providesTags: () => [{ type: "User", id: "SUGGESTED" }],
     }),
     updateUserProfile: builder.mutation<TUser, FormData>({
       query: (data) => ({
@@ -68,10 +70,11 @@ export const userSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (_, __, id) => {
         const userId = store.getState().auth.user?._id;
-        console.log({ userId, id });
         return [
           { type: "User", id },
           { type: "User", id: userId },
+          { type: "Post", id: "LIST" },
+          { type: "User", id: "SUGGESTED" },
         ];
       },
     }),

@@ -221,7 +221,6 @@ export const resizeUserPhoto = async (req, res, next) => {
     console.log(req.file, "req.file");
 
     req.file.filename = `user-${req.user._id}-${Date.now()}.jpeg`;
-    console.log(req.file.filename, "req.file");
 
     if (!req.file.buffer || req.file.buffer.length === 0) {
       console.log("Empty file buffer");

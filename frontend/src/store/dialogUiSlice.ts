@@ -22,6 +22,13 @@ const dialogUiSlice = createSlice({
       }>
     ) => {
       const { postId, dialogType } = action.payload;
+
+      // Remove dialogs for all posts except the current one
+      Object.keys(state).forEach((id) => {
+        if (id !== postId) {
+          delete state[id];
+        }
+      });
       if (!state[postId]) {
         state[postId] = {
           likesDialog: false,
@@ -44,13 +51,6 @@ const dialogUiSlice = createSlice({
       }
     },
     closeAllDialogs: (state) => {
-      // Object.keys(state).forEach((postId) => {
-      //   state[postId] = {
-      //     likesDialog: false,
-      //     commentDetailsDialog: false,
-      //     addCommentDialog: false,
-      //   };
-      // });
       Object.keys(state).forEach((postId) => {
         delete state[postId];
       });

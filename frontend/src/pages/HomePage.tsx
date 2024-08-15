@@ -1,4 +1,7 @@
-import { useGetPostsQuery } from "@features/api/postSlice";
+import {
+  useGetPostsQuery,
+  useGetFollowingPostsQuery,
+} from "@features/api/postSlice";
 import {
   useGetMeQuery,
   useGetSuggestedUsersQuery,
@@ -30,12 +33,20 @@ import { GoVideo } from "react-icons/go";
 import { BsThreeDots } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";
 const HomePage = () => {
-  const { data: posts, isLoading, isError, error } = useGetPostsQuery();
+  const {
+    data: posts,
+    isLoading,
+    isError,
+    error,
+  } = useGetFollowingPostsQuery();
+  // const { data: posts, isLoading, isError, error } = useGetPostsQuery();
+
   const { data: user } = useGetMeQuery();
   const { data: suggestedUser, isLoading: suggestedUserLoading } =
     useGetSuggestedUsersQuery();
   const { isDialogOpen } = useAppSelector((state) => state.ui);
 
+  console.log(posts, "from get following posts");
   return (
     <div className="min-h-screen relative bg-background">
       {/* <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-white shadow-md flex items-center justify-between gap-7 ">
