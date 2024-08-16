@@ -18,6 +18,8 @@ import SettingPage from "@pages/SettingPage";
 import ProfilePage from "@pages/ProfilePage";
 
 import ChangePassword from "@components/auth/ChangePassword";
+import ForgotPassword from "@components/auth/ForgotPassword";
+import ResetPassword from "@components/auth/ResetPassword";
 import useAuth from "@hooks/useAuth";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
@@ -71,6 +73,14 @@ const router = createBrowserRouter([
       {
         path: "signup",
         element: <RedirectRoute children={<SignupPage />} />,
+      },
+      {
+        path: "forgotPassword",
+        element: <RedirectRoute children={<ForgotPassword />} />,
+      },
+      {
+        path: "resetPassword/:token",
+        element: <RedirectRoute children={<ResetPassword />} />,
       },
     ],
   },

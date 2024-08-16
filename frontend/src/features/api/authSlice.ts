@@ -7,6 +7,16 @@ interface AuthResponse {
   message: string;
 }
 
+interface ResetResponse {
+  token: string;
+  user: TUser;
+}
+interface ResetRquest {
+  token: string;
+  password: string;
+  passwordConfirm: string;
+}
+
 export const authSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, authType>({
@@ -39,6 +49,28 @@ export const authSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [{ type: "User", id: "CURRENT_USER" }],
     }),
+
+    forgotPassword: builder.mutation<{ message: string }, string>({
+      query: (email) => ({
+        url: "/auth/forgot-password",
+        method: "POST",
+        body: { email },
+      }),
+      transformErrorResponse(response: { status: number; data: ApiError }) {
+        return {
+          status: response.status,
+          message: response.data?.message || "Something went wrong",
+        };
+      },
+    }),
+    resetPassword: builder.mutation<ResetResponse, ResetRquest>({
+      query: ({ token, password, passwordConfirm }) => ({
+        url: `/auth/reset-password/${token}`,
+        method: "POST",
+        body: { password, passwordConfirm },
+      }),
+      transformResponse: (response: ResetResponse) => response,
+    }),
     // getMe: builder.query<TUser, void>({
     //   query: () => "/auth/me",
     //   keepUnusedDataFor: 30,
@@ -63,5 +95,10 @@ export const authSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useLoginMutation, useSignupMutation, useLogoutMutation } =
-  authSlice;
+export const {
+  useLoginMutation,
+  useSignupMutation,
+  useLogoutMutation,
+  useForgotPasswordMutation,
+  useResetPasswordMutation,
+} = authSlice;

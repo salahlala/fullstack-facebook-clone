@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import { Schema, model } from "mongoose";
+import crypto from "crypto";
+import bcrypt from "bcryptjs";
 const userSchema = new Schema(
   {
     username: {
@@ -21,6 +23,15 @@ const userSchema = new Schema(
       required: true,
       minLength: 8,
       select: false,
+    },
+    passwordConfirm: {
+      type: String,
+      validate: {
+        validator: function (el) {
+          return el === this.password;
+        },
+        message: "Passwords are not the same",
+      },
     },
     followers: [
       {
@@ -62,6 +73,16 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
+  this.passwordConfirm = undefined;
+  next();
+});
 userSchema.methods.changePasswordAfter = function (timestamp) {
   if (this.passwordChangedAt) {
     const changedTimestamp = parseInt(
@@ -72,6 +93,19 @@ userSchema.methods.changePasswordAfter = function (timestamp) {
   }
 
   return false;
+};
+
+userSchema.methods.createPasswordResetToken = function () {
+  const resetToken = crypto.randomBytes(32).toString("hex");
+
+  this.passwordResetToken = crypto
+    .createHash("sha256")
+    .update(resetToken)
+    .digest("hex");
+
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 const User = mongoose.models.User || model("User", userSchema);

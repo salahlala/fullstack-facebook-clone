@@ -117,14 +117,17 @@ const Header = () => {
           </div>
           <IoMdSearch className="text-2xl md:hidden" />
         </DialogTrigger>
-        <DialogContent className="" aria-describedby={undefined}>
+        <DialogContent
+          className="md:w-full w-[calc(100%-40px)] "
+          aria-describedby={undefined}
+        >
           <DialogTitle className="text-center">Search</DialogTitle>
           <Input
             placeholder="search"
             className="w-full text-secondary-foreground bg-card mt-4"
             onChange={(e) => setName(e.target.value)}
           />
-          <div className="mt-4 resultl p-4 ">
+          <div className="mt-4 resultl p-4 max-h-[300px] overflow-auto hide-scrollbar ">
             <SearchList users={usersData} isSearchLoading={isSearchLoading} />
           </div>
         </DialogContent>

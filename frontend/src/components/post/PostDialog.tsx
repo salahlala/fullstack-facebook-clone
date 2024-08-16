@@ -47,7 +47,7 @@ const PostDialog = <T,>({
       </DialogTrigger>
       <DialogContent
         aria-describedby={undefined}
-        className={`max-h-[calc(100vh-100px)] w-[calc(100%-40px)] md:w-full overflow-y-auto p-0 hide-scrollbar ${
+        className={`max-h-[calc(100vh-300px)] w-[calc(100%-40px)] md:w-full overflow-y-auto p-0 hide-scrollbar ${
           deleteCommentLoading ? "opacity-50 pointer-events-none" : ""
         }`}
       >

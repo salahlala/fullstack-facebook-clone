@@ -1,6 +1,9 @@
 import { generateTokenAndSetCookie } from "../lib/generateToken.js";
+import sendEmail from "../utils/email.js";
+
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 
 const USER_LIMIT = 20;
 export const login = async (req, res) => {
@@ -70,13 +73,13 @@ export const signup = async (req, res) => {
         .status(400)
         .json({ message: "Password should be at least 8 characters" });
     }
-    const salts = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salts);
+    // const salts = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(password, salts);
     const newUser = await new User({
       username,
       fullName,
       email,
-      password: hashedPassword,
+      password,
     });
 
     if (newUser) {
@@ -147,6 +150,58 @@ export const refreshToken = async (req, res, next) => {
   const accessToken = generateTokenAndSetCookie(user._id, res);
   res.status(200).json({ token: accessToken });
 };
+
+export const forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const resetToken = user.createPasswordResetToken();
+  await user.save({ validateBeforeSave: false });
+  const resetUrl = `${process.env.FRONTEND_URL}/${resetToken}`;
+  const message = `If you didn't forget your password, please ignore this email!`;
+  try {
+    await sendEmail({
+      email: user.email,
+      subject: "Your password reset token (valid for 10 min)",
+      message,
+      resetUrl,
+    });
+    return res.status(200).json({ message: "Token sent to email" });
+  } catch (error) {
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: false });
+    return next(error);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  const { password, passwordConfirm } = req.body;
+  const hashedToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+  const user = await User.findOne({
+    passwordResetToken: hashedToken,
+    passwordResetExpires: { $gt: Date.now() },
+  });
+  if (!user) {
+    return res.status(400).json({ message: "Token is invalid or has expired" });
+  }
+  user.password = password;
+  user.passwordConfirm = passwordConfirm;
+  user.passwordResetToken = undefined;
+  user.passwordResetExpires = undefined;
+  await user.save({ validateBeforeSave: true });
+  user.password = undefined;
+  user.passwordConfirm = undefined;
+  const accessToken = generateTokenAndSetCookie(user._id, res);
+  res.status(200).json({ token: accessToken, user });
+};
+
 // export const checkUserLogin = async (req, res, next) => {
 //   try {
 //     const token = req.cookies.jwt;

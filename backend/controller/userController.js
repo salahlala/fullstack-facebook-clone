@@ -202,7 +202,7 @@ export const updateUser = async (req, res) => {
     user.bio = bio || user.bio;
     user.email = email || user.email;
     user.username = username || user.username;
-    await user.save();
+    await user.save({ validateBeforeSave: true, new: true });
     user.password = undefined;
     return res.status(200).json(user);
   } catch (error) {
