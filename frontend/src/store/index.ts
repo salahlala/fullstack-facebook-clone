@@ -3,17 +3,24 @@ import { apiSlice } from "@features/api/apiSlice";
 import authSlice from "@store/authSlice";
 import uiSlice from "@store/uiSlice";
 import dialogUiSlice from "@store/dialogUiSlice";
+import socketSlice from "./socketSlice";
 const rootReducer = combineReducers({
   [apiSlice.reducerPath]: apiSlice.reducer,
   auth: authSlice,
   ui: uiSlice,
   dialog: dialogUiSlice,
+  socket: socketSlice,
 });
 
 export const store = configureStore({
   reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(apiSlice.middleware),
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredPaths: ["socket.socket"],
+        ignoredActions: ["socket/setSocket"],
+      },
+    }).concat(apiSlice.middleware),
   devTools: true,
 });
 

@@ -5,6 +5,7 @@ import {
   createPost,
   deletePost,
   getAllPosts,
+  getPostById,
   likeUnlikePost,
   updatePost,
   resizePostPhoto,
@@ -33,11 +34,14 @@ router.post("/like/:id", likeUnlikePost);
 // get all posts
 // remove the duplicate routes '/'
 router.get("/", getAllPosts);
+
 // update post
 router.patch("/:id", upload.single("img"), resizePostPhoto, updatePost);
 
-// get like post of the user
+// get liked posts of the user
 router.get("/like/:id", getLikedPosts);
+
+// get liked post details
 router.get("/like/detail/:id", getLikedPostDetails);
 
 // get comment post of the user
@@ -52,6 +56,8 @@ router.get("/user/id/:userId", getUserPostsWithId);
 // get my posts
 router.get("/me", getMyPosts);
 
+// get post by id
+router.get("/:id", getPostById);
 // delete comment
 router.delete("/comment/:postId/:commentId", deleteComment);
 export default router;

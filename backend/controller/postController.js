@@ -9,11 +9,16 @@ import { fileURLToPath } from "url";
 import busboy from "busboy";
 import { v2 as cloudinary } from "cloudinary";
 
+import { userMap } from "../socket/socket.js";
+
 import {
   cloudinaryUploadImage,
   cloudinaryDeleteImage,
 } from "../utils/cloudinary.js";
 
+import { getIO } from "../socket/socket.js";
+
+import mongoose from "mongoose";
 // Get the directory name of the current module file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,7 +70,7 @@ export const createPost = async (req, res) => {
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
-
+    const io = getIO();
     if (!user) {
       return res.status(400).json({ error: "user not found" });
     }
@@ -77,7 +82,7 @@ export const createPost = async (req, res) => {
       let imgPath = req.file.filename;
       curPath = path.join(__dirname, `../public/images/${imgPath}`);
       console.log(req.file.filename, "req.file");
-      console.log(req.file, "create post controller");
+      console.log(req.file, "create p os t controller");
       const result = await cloudinaryUploadImage(curPath);
       console.log(result, "result cloudinary");
       img = {
@@ -91,7 +96,7 @@ export const createPost = async (req, res) => {
       text,
       img,
     });
-
+    io.emit("create-post", { postId: post._id, userId });
     res.status(201).json({ post });
   } catch (error) {
     console.log({ error: error }, "from create post");
@@ -108,6 +113,7 @@ export const deletePost = async (req, res) => {
   const userId = req.user._id;
   try {
     const post = await Post.findById(id);
+    const io = getIO();
     if (!post) {
       return res.status(400).json({ error: "post not found" });
     }
@@ -121,6 +127,7 @@ export const deletePost = async (req, res) => {
       console.log(deleteResutl);
     }
     await Post.findByIdAndDelete(id);
+    io.emit("delete-post", { postId: id, userId });
     res.status(200).json({ message: "post deleted" });
   } catch (error) {
     console.log(error);
@@ -133,7 +140,8 @@ export const commentOnPost = async (req, res) => {
     const { text } = req.body;
     const { id } = req.params;
     const userId = req.user._id;
-    console.log(req.body, "comment post");
+    const io = getIO();
+
     if (!text) {
       return res.status(400).json({ error: "text field is required" });
     }
@@ -148,6 +156,24 @@ export const commentOnPost = async (req, res) => {
     };
     post.comments.push(comment);
     await post.save();
+    if (post.user.toString() !== userId.toString()) {
+      const notification = new Notification({
+        from: userId,
+        to: post.user,
+        type: "comment",
+        postId: id,
+      });
+      console.log(post.user.toString(), "post.user");
+      await notification.save();
+      const socketId = userMap.get(post.user.toString());
+      console.log(notification);
+      if (socketId) {
+        io.to(socketId).emit("new-notification", notification);
+      }
+
+      // const io = getIO();
+      io.emit("new-comment", { postId: id, userId });
+    }
     res.status(200).json({ post });
   } catch (error) {
     console.log(error);
@@ -157,27 +183,51 @@ export const commentOnPost = async (req, res) => {
 export const likeUnlikePost = async (req, res) => {
   const { id } = req.params;
   const userId = req.user._id;
+  const io = getIO();
   try {
     const post = await Post.findById(id);
     if (!post) {
       return res.status(400).json({ error: "post not found" });
     }
+
     const isLiked = post.likes.includes(userId);
+
+    const notificationSent = await Notification.exists({
+      from: userId,
+      to: post.user,
+      type: "like",
+      postId: id,
+    });
     if (isLiked) {
       await Post.updateOne({ _id: id }, { $pull: { likes: userId } });
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: id } });
+
+      io.emit("unlike-post", { postId: id, userId });
       return res.status(200).json({ message: "unliked successfully" });
     } else {
       post.likes.push(userId);
       await User.updateOne({ _id: userId }, { $push: { likedPosts: id } });
 
       await post.save();
-      const notification = new Notification({
-        from: userId,
-        to: post.user,
-        type: "like",
-      });
-      await notification.save();
+      if (post.user.toString() !== userId.toString()) {
+        if (!notificationSent) {
+          const notification = new Notification({
+            from: userId,
+            to: post.user,
+            type: "like",
+            postId: id,
+          });
+
+          await notification.save();
+          const socketId = userMap.get(post.user.toString());
+          if (socketId) {
+            io.to(socketId).emit("new-notification", notification);
+          }
+        }
+      }
+
+      // io.to(userId).emit("new-notification", { notification });
+      io.emit("like-post", { postId: id, userId });
       return res.status(200).json({ message: "liked successfully" });
     }
   } catch (error) {
@@ -209,6 +259,7 @@ export const updatePost = async (req, res) => {
   try {
     const post = await Post.findById(id);
     const userId = req.user._id;
+    const io = getIO();
     if (!post) {
       return res.status(400).json({ error: "post not found" });
     }
@@ -240,8 +291,9 @@ export const updatePost = async (req, res) => {
     if (text) {
       post.text = text;
     }
-    console.log({ post }, "from update post");
+
     await post.save();
+    io.emit("update-post", { postId: id, userId });
     res.status(200).json({ post });
   } catch (error) {
     console.log({ error }, "from update post");
@@ -347,6 +399,27 @@ export const getMyPosts = async (req, res) => {
   }
 };
 
+export const getPostById = async (req, res) => {
+  try {
+    const { id: postId } = req.params;
+    if (!postId || !mongoose.Types.ObjectId.isValid(postId)) {
+      return res.status(400).json({ error: "post id not found" });
+    }
+    const post = await Post.findById(postId)
+      .populate("user", "username profileImg")
+      .populate("likes", "_id username profileImg")
+      .populate("comments.user", "username profileImg");
+    if (!post) {
+      return res.status(400).json({ error: "post not found" });
+    }
+
+    res.status(200).json({ data: post });
+  } catch (error) {
+    console.log(error, "from get post by id");
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
 export const getLikedPostDetails = async (req, res) => {
   try {
     const { id: postId } = req.params;
@@ -376,11 +449,14 @@ export const getPostComments = async (req, res) => {
 export const deleteComment = async (req, res) => {
   try {
     const { postId, commentId } = req.params;
+
     const post = await Post.findById(postId);
+
     if (!post) {
       return res.status(400).json({ error: "Post not found" });
     }
-    console.log({ post: post.comments, commentId });
+
+    console.log(post, "post from delete comment");
     const comment = post.comments.find(
       (comment) => comment._id.toString() === commentId
     );
@@ -396,7 +472,16 @@ export const deleteComment = async (req, res) => {
     post.comments = post.comments.filter(
       (comment) => comment._id.toString() !== commentId
     );
+    const io = getIO();
+
     await post.save();
+    // const io = getIO();
+
+    io.emit("delete-comment", { postId });
+
     res.status(200).json({ message: "Comment deleted successfully" });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error.message, "from delete comment");
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 };

@@ -54,6 +54,8 @@ const PostHeader = ({
   const [oldImage, setOldImage] = useState("");
   const { isDialogOpen, type } = useAppSelector((state) => state.ui);
   const dispatch = useAppDispatch();
+
+  // Check if the post has been updated
   const handleOpen = () => {
     setIsOpen(!isOpen);
   };

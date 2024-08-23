@@ -1,19 +1,20 @@
 import { useNavigate } from "react-router";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
+
 import { useAppDispatch } from "@store/hooks";
 import { logout as logoutAction } from "@store/authSlice";
+
 import { apiSlice } from "@features/api/apiSlice";
 import { useLogoutMutation } from "@features/api/authSlice";
-import {
-  useGetMeQuery,
-  useSearchUsersQuery,
-  useLazySearchUsersQuery,
-} from "@features/api/userSlice";
-
-import useSignOut from "react-auth-kit/hooks/useSignOut";
+import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userSlice";
+import { useGetNotificationsQuery } from "@features/api/notificationSlice";
 
 import SearchList from "@components/user/SearchList";
+import SuggestedUser from "@components/user/SuggestedUser";
+import Notification from "@components/user/Notification";
+
+import { Badge } from "@components/ui/badge";
 import { Input } from "@components/ui/input";
 import {
   Sheet,
@@ -40,14 +41,18 @@ import { ModeToggle } from "@components/mode-toggle";
 import { FaUserFriends, FaBars } from "react-icons/fa";
 import { MdGroups2, MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
-import { BsFillBellFill, BsMessenger, BsGrid3X3Gap } from "react-icons/bs";
+import { BsFillBellFill, BsMessenger } from "react-icons/bs";
 import { IoMdSearch } from "react-icons/io";
+
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
+  const { data: notifications } = useGetNotificationsQuery();
+  const [isAnimated, setIsAnimated] = useState(false);
   const [name, setName] = useState("");
   const [debonceName, setDebonceName] = useState("");
   const [open, setOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const { data: usersData, isLoading: isSearchLoading } = useSearchUsersQuery(
     debonceName,
     {
@@ -85,17 +90,34 @@ const Header = () => {
   const handleDialogChange = (open: boolean) => {
     setOpen(open);
   };
+
+  const handleSheetChange = (open: boolean) => {
+    setSheetOpen(open);
+  };
+
   useEffect(() => {
     setOpen(false);
+    setSheetOpen(false);
     setName("");
   }, [location]);
+
+  useEffect(() => {
+    setIsAnimated(true);
+    const timeout = setTimeout(() => {
+      setIsAnimated(false);
+    }, 500);
+
+    console.log(notifications?.length, "is animated");
+    return () => clearTimeout(timeout);
+  }, [notifications?.length]);
+
   return (
     <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between gap-7 ">
       <Link to="/app">
         <h1 className="text-2xl font-bold ">facebook</h1>
       </Link>
       <div className="xl:hidden">
-        <Sheet>
+        <Sheet open={sheetOpen} onOpenChange={handleSheetChange}>
           <SheetTrigger>
             <FaBars />
           </SheetTrigger>
@@ -103,8 +125,7 @@ const Header = () => {
             <SheetHeader>
               <SheetTitle>Are you absolutely sure?</SheetTitle>
               <SheetDescription>
-                This action cannot be undone. This will permanently delete your
-                account and remove your data from our servers.
+                <SuggestedUser />
               </SheetDescription>
             </SheetHeader>
           </SheetContent>
@@ -146,11 +167,26 @@ const Header = () => {
       <div className="flex gap-3 items-center justify-end w-full text-secondary-foreground">
         <Popover>
           <PopoverTrigger>
-            <div className="w-[30px] h-[30px] grid place-items-center rounded-md ">
+            <div className="w-[30px] h-[30px] grid place-items-center rounded-md relative">
               <BsFillBellFill className="" />
+
+              <div
+                className={`${
+                  isAnimated ? "animate-bounce" : ""
+                } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-500 rounded-full top-0 right-0`}
+              >
+                {notifications?.length}
+              </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent>Place content for the popover here.</PopoverContent>
+          <PopoverContent className="max-h-[400px] overflow-y-auto hide-scrollbar">
+            {notifications?.notifications.map((notification) => (
+              <Notification
+                key={notification._id}
+                notification={notification}
+              />
+            ))}
+          </PopoverContent>
         </Popover>
 
         <div className="w-[30px] h-[30px] grid place-items-center  ">

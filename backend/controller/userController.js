@@ -12,6 +12,9 @@ import {
   cloudinaryDeleteImage,
 } from "../utils/cloudinary.js";
 
+import { userMap } from "../socket/socket.js";
+import { getIO } from "../socket/socket.js";
+
 // Get the directory name of the current module file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -44,6 +47,9 @@ export const followUnfollowUser = async (req, res) => {
     const currentUserID = req.user._id;
     const currentUser = await User.findById(currentUserID);
     const userToModify = await User.findById(id);
+
+    const io = getIO();
+
     if (id == currentUserID.toString()) {
       return res
         .status(400)
@@ -54,6 +60,11 @@ export const followUnfollowUser = async (req, res) => {
     }
 
     const isFollowing = currentUser.following?.includes(id);
+    const notificationSent = await Notification.exists({
+      from: currentUserID,
+      to: userToModify._id,
+      type: "follow",
+    });
 
     if (isFollowing) {
       // unfollow
@@ -71,13 +82,20 @@ export const followUnfollowUser = async (req, res) => {
       await User.findByIdAndUpdate(currentUserID, {
         $push: { following: id },
       });
-      // notification
-      const notification = new Notification({
-        from: currentUserID,
-        to: userToModify._id,
-        type: "follow",
-      });
-      await notification.save();
+      if (!notificationSent) {
+        // notification
+        const notification = new Notification({
+          from: currentUserID,
+          to: userToModify._id,
+          type: "follow",
+        });
+        await notification.save();
+        const socketId = userMap.get(userToModify._id.toString());
+        if (socketId) {
+          console.log(socketId, "from follow user");
+          io.to(socketId).emit("new-notification", notification);
+        }
+      }
       res.status(200).json({ message: "user followed" });
     }
   } catch (error) {

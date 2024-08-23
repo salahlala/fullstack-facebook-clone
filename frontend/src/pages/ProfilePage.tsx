@@ -29,7 +29,6 @@ const ProfilePage = () => {
     ? myPostsQuery
     : userPostsQuery;
 
-  console.log(isFetching, "isFetching");
   return (
     <div className="min-h-screen pt-[70px] container mx-auto px-4">
       <Header id={id!} />
@@ -48,20 +47,20 @@ const ProfilePage = () => {
             </div>
           )}
         </div>
-        <div className="hidden lg:block friends-list basis-1/2 bg-card rounded-md h-[400px]">
+        <div className="hidden lg:block friends-list  basis-1/2 bg-card rounded-md max-h-[600px]">
           <div className="p-4">
             <h1 className="text-2xl font-bold">Followers</h1>
             {/* length of friends */}
             <span className=" text-gray-500">
               {userProfile?.followers?.length} Followers
             </span>
-            <div className="flex gap-5 mt-5 items-center">
+            <div className="flex gap-5 mt-5 items-center flex-wrap">
               {userProfileLoading && (
                 <div className="flex justify-center items-center">
                   <ImSpinner2 className="text-center text-2xl animate-spin" />
                 </div>
               )}
-              {!isFetching &&
+              {!userProfileLoading &&
                 userProfile?.followers
                   ?.slice(0, 5)
                   .map((user) => (

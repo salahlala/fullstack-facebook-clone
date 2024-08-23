@@ -1,11 +1,7 @@
-import {
-  useGetPostsQuery,
-  useGetFollowingPostsQuery,
-} from "@features/api/postSlice";
-import {
-  useGetMeQuery,
-  useGetSuggestedUsersQuery,
-} from "@features/api/userSlice";
+import { useEffect } from "react";
+import { useGetFollowingPostsQuery } from "@features/api/postSlice";
+import { useGetMeQuery } from "@features/api/userSlice";
+import { useGetNotificationsQuery } from "@features/api/notificationSlice";
 import { useAppSelector } from "@store/hooks";
 import type { TPost } from "@typesFolder/postType";
 import type { TUser } from "@typesFolder/authType";
@@ -15,7 +11,7 @@ import Loader from "@components/Loader";
 import Story from "@components/story/Story";
 import CreatePost from "@components/post/CreatePost";
 import FriendList from "@components/user/FriendList";
-
+import SuggestedUser from "@components/user/SuggestedUser";
 import {
   Carousel,
   CarouselContent,
@@ -31,22 +27,41 @@ import { FaUserFriends } from "react-icons/fa";
 import { MdGroups2 } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
 import { BsThreeDots } from "react-icons/bs";
-import { ImSpinner2 } from "react-icons/im";
 const HomePage = () => {
   const {
     data: posts,
     isLoading,
-    isError,
     error,
+    refetch: refetchPosts,
   } = useGetFollowingPostsQuery();
+
+  const { refetch: refetchNotifications } = useGetNotificationsQuery();
+
   // const { data: posts, isLoading, isError, error } = useGetPostsQuery();
 
   const { data: user } = useGetMeQuery();
-  const { data: suggestedUser, isLoading: suggestedUserLoading } =
-    useGetSuggestedUsersQuery();
-  const { isDialogOpen } = useAppSelector((state) => state.ui);
 
-  console.log(posts, "from get following posts");
+  const { socket } = useAppSelector((state) => state.socket);
+  console.log(error, "from get following posts");
+  useEffect(() => {
+    const handleRefetchPosts = () => {
+      refetchPosts()
+      console.log("refetch posts")
+    };
+
+    const events = ["create-post", "update-post", "delete-post"];
+
+    events.forEach((event) => {
+      socket?.on(event, handleRefetchPosts);
+    });
+
+    return () => {
+      events.forEach((event) => {
+        socket?.off(event, handleRefetchPosts);
+      });
+    };
+  }, [socket, refetchPosts, refetchNotifications]);
+
   return (
     <div className="min-h-screen relative bg-background">
       {/* <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-white shadow-md flex items-center justify-between gap-7 ">
@@ -174,25 +189,7 @@ const HomePage = () => {
           )}
         </div>
         <div className="right  basis-1/4 hidden xl:block h-[calc(100vh-70px)] p-4  sticky top-[70px]">
-          <div className="flex items-cetner gap-4">
-            {/* 
-            -user img 
-            - notifications
-            - messengenr
-            - apps
-          */}
-            {/* <div className="w-[30px] h-[30px] opacity-bg ">
-              <BsFillBellFill className="" />
-            </div>
-            <div className="w-[30px] h-[30px] opacity-bg ">
-              <BsMessenger className="" />
-            </div>
-            <div className="w-[30px] h-[30px] opacity-bg ">
-              <BsGrid3X3Gap className="" />
-            </div>
-
-            <div className="w-[30px] h-[30px] bg-white rounded-full "></div> */}
-          </div>
+          {/* <div className="flex items-cetner gap-4"></div> */}
           <div className="contacts  p-4 bg-card rounded-md mb-4">
             <div className=" flex justify-between items-center text-card-foreground mb-4">
               <h2 className="font-bold   text-2xl">Contacts</h2>
@@ -209,20 +206,7 @@ const HomePage = () => {
             </div>
           </div>
 
-          <div className="p-4 bg-card rounded-md">
-            <h2 className="font-bold   text-2xl mb-1">suggested User</h2>
-            <div className="flex-col flex gap-4">
-              {suggestedUser?.map((user: TUser) => (
-                <FriendList key={user._id} user={user} type="follow" />
-              ))}
-              {!suggestedUserLoading && suggestedUser?.length === 0 && (
-                <p>No users found</p>
-              )}
-              {suggestedUserLoading && (
-                <ImSpinner2 className="text-center text-2xl animate-spin" />
-              )}
-            </div>
-          </div>
+          <SuggestedUser />
         </div>
       </div>
     </div>

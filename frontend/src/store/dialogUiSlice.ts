@@ -16,7 +16,7 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 //   [profileId: string]: ProfileDialogState; // For profile-related dialogs
 // };
 
-interface DialogState {
+export interface DialogState {
   [postId: string]: {
     likesDialog: boolean;
     commentDetailsDialog: boolean;

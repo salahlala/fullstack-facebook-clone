@@ -23,7 +23,7 @@ const FriendList = ({
         <div className="flex items-center gap-2">
           {type === "follow" ? <FollowButton id={user._id} /> : null}
 
-          <Link to={`/app/profile/${user._id}`}>
+          <Link to={`/app/profile/${user._id}`} className="">
             <h2>{user.username}</h2>
           </Link>
         </div>

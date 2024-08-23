@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { TPost } from "@typesFolder/postType";
+import { TNotification } from "@typesFolder/notificationType";
 
 import { openDialog, closeDialog } from "@store/dialogUiSlice";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
@@ -13,6 +14,7 @@ import {
   useAddLikeMutation,
   useAddCommentMutation,
 } from "@features/api/postSlice";
+import { useGetNotificationsQuery } from "@features/api/notificationSlice";
 
 import PostHeader from "@components/post/PostHeader";
 import PostBody from "@components/post/PostBody";
@@ -32,8 +34,9 @@ import { AiFillLike } from "react-icons/ai";
 import { RiShareForwardLine } from "react-icons/ri";
 interface postProps {
   post: TPost;
+  styles?: string;
 }
-const Post = ({ post }: postProps) => {
+const Post = ({ post, styles }: postProps) => {
   const { data } = useGetMeQuery();
   const [deletePost, { isLoading, isSuccess }] = useDeletePostMutation();
   const [addLike] = useAddLikeMutation();
@@ -44,6 +47,8 @@ const Post = ({ post }: postProps) => {
   ] = useLazyGetLikedPostDetailsQuery();
   const [getPostComments, { data: commentsData, isLoading: loadingComment }] =
     useLazyGetPostCommentsQuery();
+
+  const { refetch: refetchNotifications } = useGetNotificationsQuery();
   const { toast } = useToast();
   const [commentText, setCommentText] = useState("");
   const [openCommentDialog, setOpenCommentDialog] = useState(false);
@@ -51,6 +56,60 @@ const Post = ({ post }: postProps) => {
   const dispatch = useAppDispatch();
   const dialogData = useAppSelector((state) => state.dialog[post._id]);
   const commentDialogOpen = dialogData?.addCommentDialog || false;
+
+  const { socket } = useAppSelector((state) => state.socket);
+
+  useEffect(() => {
+    const handleNewComment = (data: { postId: string; userId: string }) => {
+      if (data.postId === post._id) {
+        getPostComments(post._id);
+      }
+      // console.log(data, "from new comment socket");
+    };
+    const handleDeleteComment = (data: { postId: string }) => {
+      if (data.postId === post._id) {
+        getPostComments(post._id);
+      }
+    };
+
+    const handleLikePost = (data: { postId: string; userId: string }) => {
+      if (data.postId === post._id) {
+        getLikedPostDetails(post._id);
+      }
+    };
+    const handleUnlikePost = (data: { postId: string; userId: string }) => {
+      if (data.postId === post._id) {
+        getLikedPostDetails(post._id);
+      }
+    };
+
+    const handleNewNotification = (data: TNotification) => {
+      if (data.postId === post._id) {
+        // console.log(data.postId, "from the post component");
+        refetchNotifications();
+      }
+    };
+
+    socket?.on("new-notification", handleNewNotification);
+
+    socket?.on("new-comment", handleNewComment);
+    socket?.on("delete-comment", handleDeleteComment);
+    socket?.on("like-post", handleLikePost);
+    socket?.on("unlike-post", handleUnlikePost);
+    return () => {
+      socket?.off("new-comment", handleNewComment);
+      socket?.off("delete-comment", handleDeleteComment);
+      socket?.off("like-post", handleLikePost);
+      socket?.off("unlike-post", handleUnlikePost);
+      socket?.off("new-notification", handleNewNotification);
+    };
+  }, [
+    socket,
+    post._id,
+    getPostComments,
+    getLikedPostDetails,
+    refetchNotifications,
+  ]);
   // console.log(data,'form the post component');
   const handleDeletePost = async () => {
     try {
@@ -123,7 +182,7 @@ const Post = ({ post }: postProps) => {
 
   // const handleUpdatePost = async()=>{}
   return (
-    <div className=" shadow-lg rounded-xl p-6 bg-card">
+    <div className={`${styles} shadow-lg rounded-xl p-6 bg-card`}>
       <PostHeader
         post={post}
         userId={data?._id}

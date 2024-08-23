@@ -13,7 +13,7 @@ TimeAgo.addDefaultLocale(en);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <Provider store={store}>
         <AppRouter />
       </Provider>

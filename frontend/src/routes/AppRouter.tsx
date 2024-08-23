@@ -16,6 +16,7 @@ import HomePage from "@pages/HomePage";
 import SignupPage from "@pages/SignupPage";
 import SettingPage from "@pages/SettingPage";
 import ProfilePage from "@pages/ProfilePage";
+import PostPage from "@pages/PostPage";
 
 import ChangePassword from "@components/auth/ChangePassword";
 import ForgotPassword from "@components/auth/ForgotPassword";
@@ -91,6 +92,10 @@ const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: "post/:id",
+        element: <PostPage />,
       },
       {
         path: "profile/:id",

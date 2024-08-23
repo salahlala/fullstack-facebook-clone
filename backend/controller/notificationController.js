@@ -7,9 +7,14 @@ export const getNotifications = async (req, res) => {
       .sort({
         createdAt: -1,
       })
-      .populate("from", "username profileImg");
+      .populate("from", "username profileImg")
+      .populate("to", "username profileImg");
 
     await Notification.updateMany({ to: userId }, { read: true });
+    // delete all notifications where read is true
+    // delete notification after 30 days
+
+    // await Notification.deleteMany({ to: userId, read: true });
     res.status(200).json({
       data: {
         length: notifications?.length,
@@ -25,7 +30,7 @@ export const getNotifications = async (req, res) => {
 export const deleteNotification = async (req, res) => {
   try {
     const userId = req.user._id;
-    await Notification.deleteMany({ to: userId });
+    await Notification.deleteMany({ to: userId, read: true });
     res.status(200).json({ message: "notification deleted successfully" });
   } catch (error) {
     console.log(error, "from delete notification");

@@ -48,7 +48,7 @@ const PostDialog = <T,>({
       <DialogContent
         aria-describedby={undefined}
         className={`max-h-[calc(100vh-300px)] w-[calc(100%-40px)] md:w-full overflow-y-auto p-0 hide-scrollbar ${
-          deleteCommentLoading ? "opacity-50 pointer-events-none" : ""
+          deleteCommentLoading ? " pointer-events-none" : ""
         }`}
       >
         <DialogHeader className=" sticky top-0 z-20 bg-background p-4">

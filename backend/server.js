@@ -14,6 +14,8 @@ import globalErrorHandler from "./controller/errorController.js";
 
 import connectDB from "./db/connectDB.js";
 
+import { initSocket } from "./socket/socket.js";
+
 dotenv.config({ path: "./config.env" });
 
 const app = express();
@@ -36,8 +38,12 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use(globalErrorHandler);
-app.listen(PORT, () => {
+
+const server = app.listen(PORT, () => {
   console.log(`Server started on port ${PORT}`);
 
   connectDB();
 });
+initSocket(server);
+
+export default server;

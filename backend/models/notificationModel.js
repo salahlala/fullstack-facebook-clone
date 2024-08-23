@@ -16,13 +16,22 @@ const notificationSchema = new Schema(
     type: {
       type: String,
       required: true,
-      enum: ["follow", "like"],
+      enum: ["follow", "like", "comment"],
     },
     read: {
       type: Boolean,
       default: false,
     },
+    postId: {
+      type: Schema.Types.ObjectId,
+      ref: "Post",
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
+
   { timestamps: true }
 );
 

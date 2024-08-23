@@ -176,7 +176,9 @@ const PostBody = ({
         <PostDialog<User>
           post={post}
           onOpenChange={openLikeDialog}
-          title={`Likes (${post?.likes?.length || 0})`}
+          title={`Likes (${
+            likedData?.likes.length || post.likes?.length || 0
+          })`}
           renderContent={renderLikeContent}
           loading={loadingLikedData}
           data={likedData?.likes || []}
@@ -186,7 +188,9 @@ const PostBody = ({
         <PostDialog<TComment>
           post={post}
           onOpenChange={openCommentDetailsDialog}
-          title={`Comments (${post.comments?.length || 0})`}
+          title={`Comments (${
+            commentsData?.length || post.comments?.length || 0
+          })`}
           renderContent={renderCommentContent}
           loading={loadingComments}
           data={commentsData || []}

@@ -25,7 +25,17 @@ export const postSlice = apiSlice.injectEndpoints({
         return [...postTags, { type: "Post", id: "LIST" }];
       },
     }),
-
+    getPostById: builder.query<TPost, string>({
+      query: (id) => `/posts/${id}`,
+      transformResponse: (response: { data: TPost }) => response.data,
+      providesTags: (result) =>
+        result
+          ? [
+              { type: "Post", id: result._id },
+              { type: "Post", id: "LIST" },
+            ]
+          : [{ type: "Post", id: "LIST" }],
+    }),
     getMyPosts: builder.query<TPost[], void>({
       query: () => "/posts/me",
       transformResponse: (response: { data: TPost[] }) => response.data,
@@ -65,9 +75,17 @@ export const postSlice = apiSlice.injectEndpoints({
                 type: "Post" as const,
                 id: _id,
               })),
+              ...result.map(({ user }) => ({
+                type: "Post" as const,
+                id: `USER_POSTS_${user}`,
+              })),
               { type: "Post", id: "LIST" },
+              // { type: "Post", id: `USER_POSTS_${user._id}` },
             ]
-          : [{ type: "Post", id: "LIST" }],
+          : [
+              { type: "Post", id: "LIST" },
+              { type: "Post", id: "USER_POSTS" },
+            ],
     }),
     getLikedPosts: builder.query<TPost[], void>({
       query: (id) => `/posts/like/${id}`,
@@ -96,7 +114,13 @@ export const postSlice = apiSlice.injectEndpoints({
           message: err.data.message || "some error",
         };
       },
-      invalidatesTags: [{ type: "Post", id: "LIST" }],
+      invalidatesTags: (result) =>
+        result
+          ? [
+              { type: "Post", id: `USER_POSTS_${result.user}` },
+              { type: "Post", id: "LIST" },
+            ]
+          : [{ type: "Post", id: "LIST" }],
     }),
     addComment: builder.mutation<TPost, { text: string; postId: string }>({
       query: (data) => ({
@@ -174,6 +198,7 @@ export const postSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetPostsQuery,
+  useGetPostByIdQuery,
   useGetFollowingPostsQuery,
   useGetMyPostsQuery,
   useGetUserPostsQuery,
