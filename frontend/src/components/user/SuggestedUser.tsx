@@ -8,7 +8,7 @@ const SuggestedUser = () => {
   const { data: suggestedUser, isLoading: suggestedUserLoading } =
     useGetSuggestedUsersQuery();
   return (
-    <div className=" bg-card rounded-md overflow-auto max-h-[480px]">
+    <div className=" card-scroll">
       <h2 className="font-bold p-4  text-2xl mb-1 text-primary sticky top-0 bg-card z-20">
         suggested User
       </h2>

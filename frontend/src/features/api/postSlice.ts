@@ -27,7 +27,14 @@ export const postSlice = apiSlice.injectEndpoints({
     }),
     getPostById: builder.query<TPost, string>({
       query: (id) => `/posts/${id}`,
+      keepUnusedDataFor: 0,
       transformResponse: (response: { data: TPost }) => response.data,
+      transformErrorResponse: (err: { status: number; data: ApiError }) => {
+        return {
+          status: err.status,
+          message: err.data.message,
+        };
+      },
       providesTags: (result) =>
         result
           ? [

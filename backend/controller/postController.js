@@ -410,7 +410,7 @@ export const getPostById = async (req, res) => {
       .populate("likes", "_id username profileImg")
       .populate("comments.user", "username profileImg");
     if (!post) {
-      return res.status(400).json({ error: "post not found" });
+      return res.status(400).json({ message: "post not found" });
     }
 
     res.status(200).json({ data: post });

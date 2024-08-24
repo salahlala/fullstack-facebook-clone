@@ -171,15 +171,19 @@ const Header = () => {
               <BsFillBellFill className="" />
 
               <div
-                className={`${
-                  isAnimated ? "animate-bounce" : ""
+                className={`${isAnimated ? "animate-bounce" : ""} ${
+                  !notifications?.length ? "hidden" : ""
                 } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-500 rounded-full top-0 right-0`}
               >
                 {notifications?.length}
               </div>
             </div>
           </PopoverTrigger>
-          <PopoverContent className="max-h-[400px] overflow-y-auto hide-scrollbar">
+          <PopoverContent
+            className={`${
+              !notifications?.length ? "hidden" : ""
+            } max-h-[400px] overflow-y-auto hide-scrollbar`}
+          >
             {notifications?.notifications.map((notification) => (
               <Notification
                 key={notification._id}

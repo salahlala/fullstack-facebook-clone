@@ -24,14 +24,21 @@ const ProfilePage = () => {
     data: userProfile,
     isLoading: userProfileLoading,
     isFetching,
-  } = useGetUserProfileQuery(id!);
+  } = useGetUserProfileQuery(id!, {
+    refetchOnMountOrArgChange: true,
+  });
   const { data: posts, isLoading: postsLoading } = isMyProfile
     ? myPostsQuery
     : userPostsQuery;
 
   return (
     <div className="min-h-screen pt-[70px] container mx-auto px-4">
-      <Header id={id!} />
+      <Header
+        id={id!}
+        isMyProfile={isMyProfile}
+        userProfile={userProfile}
+        userProfileLoading={userProfileLoading}
+      />
       <div className="flex-col md:flex-row flex gap-4 mt-3">
         <div className="basis-full lg:basis-1/2 ">
           {isMyProfile && <CreatePost id={id} />}

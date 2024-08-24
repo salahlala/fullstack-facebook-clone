@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import {
-  useGetMeQuery,
-  useGetUserProfileQuery,
-  useFollowUserMutation,
-} from "@features/api/userSlice";
+
+import type { TUser } from "@typesFolder/authType";
+
 import FollowButton from "@components/user/FollowButton";
 import FriendList from "@components/user/FriendList";
 
@@ -16,22 +14,36 @@ import {
   DialogContent,
   DialogTitle,
 } from "@components/ui/dialog";
+
 import { ImSpinner2 } from "react-icons/im";
-const Header = ({ id }: { id: string }) => {
-  const { data, isLoading: isLoadingProfile } = useGetUserProfileQuery(id, {
-    refetchOnMountOrArgChange: true,
-  });
-  const { data: userLogin } = useGetMeQuery();
-  const isMyProfile = userLogin?._id === id;
+
+interface IHeaderProps {
+  id: string;
+  userProfile: TUser | undefined;
+  isMyProfile: boolean;
+  userProfileLoading: boolean;
+}
+const Header = ({
+  userProfile,
+  isMyProfile,
+  userProfileLoading,
+  id,
+}: IHeaderProps) => {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [followingDialogOpen, setFollowingDialogOpen] = useState(false);
   const { pathname } = useLocation();
 
   const onOpenchange = (open: boolean) => {
     setDialogOpen(open);
   };
 
+  const handleOpenChange = (open: boolean) => {
+    setFollowingDialogOpen(open);
+  };
+
   useEffect(() => {
     setDialogOpen(false);
+    setFollowingDialogOpen(false);
   }, [pathname]);
 
   return (
@@ -49,31 +61,63 @@ const Header = ({ id }: { id: string }) => {
       )}
       <div className="flex items-center gap-3">
         <div className="text">
-          <h1>{data?.username}</h1>
-          <p className="text-sm text-gray-500">{data?.bio}</p>
-          <Dialog onOpenChange={onOpenchange} open={dialogOpen}>
-            <DialogTrigger>
-              <p className="text-sm text-gray-500 flex items-center">
-                {data?.followers.length} followers
-              </p>
-            </DialogTrigger>
-            <DialogContent aria-describedby={undefined}>
-              <DialogTitle>Followers</DialogTitle>
-              {data?.followers.map((follower) => (
-                <FriendList key={follower._id} user={follower} type="follow" />
-              ))}
-              {data?.followers.length === 0 && (
-                <p className="text-sm text-gray-500">No followers</p>
-              )}
-              {isLoadingProfile && (
-                <ImSpinner2 className="text-center text-2xl animate-spin" />
-              )}
-            </DialogContent>
-          </Dialog>
+          <h1>{userProfile?.fullName}</h1>
+          <p className="text-sm text-gray-500">{userProfile?.bio}</p>
+          <div className="flex items-center gap-2">
+            <Dialog onOpenChange={onOpenchange} open={dialogOpen}>
+              <DialogTrigger>
+                <p className="text-sm text-gray-500 flex items-center">
+                  {userProfile?.followers.length} followers
+                </p>
+              </DialogTrigger>
+              <DialogContent aria-describedby={undefined}>
+                <DialogTitle>Followers</DialogTitle>
+                {userProfile?.followers.map((follower) => (
+                  <FriendList
+                    key={follower._id}
+                    user={follower}
+                    type="follow"
+                  />
+                ))}
+                {userProfile?.followers.length === 0 && (
+                  <p className="text-sm text-gray-500">No followers</p>
+                )}
+                {userProfileLoading && (
+                  <ImSpinner2 className="text-center text-2xl animate-spin" />
+                )}
+              </DialogContent>
+            </Dialog>
+
+            <Dialog onOpenChange={handleOpenChange} open={followingDialogOpen}>
+              <DialogTrigger>
+                <p className="text-sm text-gray-500 flex items-center">
+                  {userProfile?.following.length} following
+                </p>
+              </DialogTrigger>
+              <DialogContent aria-describedby={undefined}>
+                <DialogTitle>Following</DialogTitle>
+                {userProfile?.following.map((follower) => (
+                  <FriendList
+                    key={follower._id}
+                    user={follower}
+                    type="follow"
+                  />
+                ))}
+                {userProfile?.following.length === 0 && (
+                  <p className="text-sm text-gray-500">
+                    You are not following anyone
+                  </p>
+                )}
+                {userProfileLoading && (
+                  <ImSpinner2 className="text-center text-2xl animate-spin" />
+                )}
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
         <Avatar className="w-[80px] h-[80px]">
-          <AvatarImage src={data?.profileImg?.url} />
-          <AvatarFallback>{data?.username.slice(0, 1)}</AvatarFallback>
+          <AvatarImage src={userProfile?.profileImg?.url} />
+          <AvatarFallback>{userProfile?.username.slice(0, 1)}</AvatarFallback>
         </Avatar>
         {/* <img
           src={data?.profileImg?.url}

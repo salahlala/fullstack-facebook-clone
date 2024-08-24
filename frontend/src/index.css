@@ -129,6 +129,9 @@
   .button {
     @apply !mt-4 shadow-md transition-colors bg-primary text-white hover:bg-card hover:text-black dark:bg-card dark:text-white dark:hover:bg-secondary  
   }
+  .card-scroll {
+    @apply bg-card rounded-md mb-4 basis-1/2 overflow-y-auto hide-scrollbar
+  }
 }
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

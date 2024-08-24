@@ -42,11 +42,11 @@ const HomePage = () => {
   const { data: user } = useGetMeQuery();
 
   const { socket } = useAppSelector((state) => state.socket);
-  console.log(error, "from get following posts");
+
   useEffect(() => {
     const handleRefetchPosts = () => {
-      refetchPosts()
-      console.log("refetch posts")
+      refetchPosts();
+      console.log("refetch posts");
     };
 
     const events = ["create-post", "update-post", "delete-post"];
@@ -188,10 +188,10 @@ const HomePage = () => {
             </div>
           )}
         </div>
-        <div className="right  basis-1/4 hidden xl:block h-[calc(100vh-70px)] p-4  sticky top-[70px]">
+        <div className="right  flex-col basis-1/4 hidden xl:flex h-[calc(100vh-70px)] p-4  sticky top-[70px]">
           {/* <div className="flex items-cetner gap-4"></div> */}
-          <div className="contacts  p-4 bg-card rounded-md mb-4">
-            <div className=" flex justify-between items-center text-card-foreground mb-4">
+          <div className="card-scroll">
+            <div className="sticky top-0 bg-card z-20 p-4 flex justify-between items-center text-card-foreground">
               <h2 className="font-bold   text-2xl">Contacts</h2>
               <div className="items-center flex gap-4">
                 <IoMdVideocam className="" />
@@ -199,7 +199,7 @@ const HomePage = () => {
                 <IoMdSettings className="" />
               </div>
             </div>
-            <div className="flex-col flex gap-4">
+            <div className="flex-col flex gap-4  p-4 ">
               {user?.following?.map((user: TUser) => (
                 <FriendList key={user._id} user={user} />
               ))}

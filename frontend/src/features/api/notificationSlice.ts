@@ -12,10 +12,19 @@ export const notificationSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getNotifications: builder.query<INotificationsResponse, void>({
       query: () => "/notifications",
+      providesTags: ["Notification"],
       transformResponse: (response: { data: INotificationsResponse }) =>
         response.data,
+    }),
+    deleteNotificationById: builder.mutation<void, string>({
+      query: (id) => ({
+        url: `/notifications/single/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Notification"],
     }),
   }),
 });
 
-export const { useGetNotificationsQuery } = notificationSlice;
+export const { useGetNotificationsQuery, useDeleteNotificationByIdMutation } =
+  notificationSlice;
