@@ -11,7 +11,7 @@ import { useToast } from "@components/ui/use-toast";
 
 import type { ApiError } from "@typesFolder/apiError";
 const SettingPage = () => {
-  const { data, isLoading } = useGetMeQuery();
+  const { data } = useGetMeQuery();
   const [updateUserProfile, { isLoading: isLoadingUpdate, isError, error }] =
     useUpdateUserProfileMutation();
   const { toast } = useToast();
@@ -27,15 +27,14 @@ const SettingPage = () => {
 
   // console.log(data.)
 
-  const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0] || null;
-    if (file) {
-      setProfileImg(file);
-      setImg(URL.createObjectURL(file));
-    }
-  };
+  // const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const file = e.target.files?.[0] || null;
+  //   if (file) {
+  //     setProfileImg(file);
+  //     setImg(URL.createObjectURL(file));
+  //   }
+  // };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log(e.target.name, e.target.value);
     if (e.target.name === "username") {
       setFormData({ ...formData, username: e.target.value });
     } else if (e.target.name === "bio") {
@@ -45,7 +44,6 @@ const SettingPage = () => {
     } else if (e.target.name === "profileImg") {
       const file = e.target.files?.[0] || null;
       if (file) {
-        console.log(file, "file");
         setProfileImg(file);
         setImg(URL.createObjectURL(file));
       }
@@ -54,7 +52,6 @@ const SettingPage = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log(username.trim() === "");
     if (username.trim() === "" || formData.email.trim() === "") {
       return;
     }

@@ -31,7 +31,6 @@ const HomePage = () => {
   const {
     data: posts,
     isLoading,
-    error,
     refetch: refetchPosts,
   } = useGetFollowingPostsQuery();
 
@@ -201,7 +200,7 @@ const HomePage = () => {
             </div>
             <div className="flex-col flex gap-4  p-4 ">
               {user?.following?.map((user: TUser) => (
-                <FriendList key={user._id} user={user} />
+                <FriendList key={user._id} user={user} pos={"contact"} />
               ))}
             </div>
           </div>

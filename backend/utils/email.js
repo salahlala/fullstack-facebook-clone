@@ -2,9 +2,9 @@ import nodemailer from "nodemailer";
 
 const sendEmail = async (options) => {
   const transporter = nodemailer.createTransport({
-    // host: process.env.EMAIL_HOST,
+    host: process.env.EMAIL_HOST,
     service: process.env.EMAIL_SERVICE,
-    // port: process.env.EMAIL_PORT,
+    port: process.env.EMAIL_PORT,
     auth: {
       user: process.env.EMAIL_USERNAME,
       pass: process.env.EMAIL_PASSWORD,
@@ -12,7 +12,7 @@ const sendEmail = async (options) => {
   });
 
   const mailOptions = {
-    from: "facebook-clone",
+    from: process.env.EMAIL_USERNAME,
     to: options.email,
     subject: options.subject,
     text: options.message,
@@ -22,7 +22,9 @@ const sendEmail = async (options) => {
     </div>`,
   };
 
-  await transporter.sendMail(mailOptions);
+  await transporter.sendMail(mailOptions).then((info) => {
+    console.log({ info });
+  });
 };
 
 export default sendEmail;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
 
-import { useAppSelector } from "@store/hooks";
+// import { useAppSelector } from "@store/hooks";
 
 import { useSignupMutation } from "@features/api/authSlice";
 import type { ApiError } from "@typesFolder/apiError";
@@ -13,7 +13,7 @@ import { Label } from "@components/ui/label";
 
 const SignupPage = () => {
   const [signup, { isLoading, isError, error }] = useSignupMutation();
-  const { isLoggedIn } = useAppSelector((state) => state.auth);
+  // const { isLoggedIn } = useAppSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
     username: "",

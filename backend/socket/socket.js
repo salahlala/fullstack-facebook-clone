@@ -20,7 +20,16 @@ const initSocket = (server) => {
       userMap.set(userId, socket.id);
       console.log("a user connected", userId);
     }
+    io.emit("getUsers", Array.from(userMap.keys()));
     socket.on("disconnect", () => {
+      const userId = Array.from(userMap.keys()).find(
+        (key) => userMap.get(key) === socket.id
+      );
+
+      if (userId) {
+        userMap.delete(userId);
+        io.emit("getUsers", Array.from(userMap.keys()));
+      }
       console.log("user disconnected");
     });
   });

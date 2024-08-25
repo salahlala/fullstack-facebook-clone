@@ -20,13 +20,10 @@ const ProfilePage = () => {
   const isMyProfile = userLogin?._id === id;
   const myPostsQuery = useGetMyPostsQuery(undefined, { skip: !isMyProfile });
   const userPostsQuery = useGetUserPostsQuery(id!, { skip: isMyProfile });
-  const {
-    data: userProfile,
-    isLoading: userProfileLoading,
-    isFetching,
-  } = useGetUserProfileQuery(id!, {
-    refetchOnMountOrArgChange: true,
-  });
+  const { data: userProfile, isLoading: userProfileLoading } =
+    useGetUserProfileQuery(id!, {
+      refetchOnMountOrArgChange: true,
+    });
   const { data: posts, isLoading: postsLoading } = isMyProfile
     ? myPostsQuery
     : userPostsQuery;
@@ -61,9 +58,9 @@ const ProfilePage = () => {
             <span className=" text-gray-500">
               {userProfile?.followers?.length} Followers
             </span>
-            <div className="flex gap-5 mt-5 items-center flex-wrap">
+            <div className="flex gap-5 mt-5 items-center flex-wrap ">
               {userProfileLoading && (
-                <div className="flex justify-center items-center">
+                <div className="flex justify-center items-center mx-auto">
                   <ImSpinner2 className="text-center text-2xl animate-spin" />
                 </div>
               )}

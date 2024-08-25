@@ -165,10 +165,12 @@ export const forgotPassword = async (req, res, next) => {
   const message = `If you didn't forget your password, please ignore this email!`;
   try {
     await sendEmail({
-      email: user.email,
+      email,
       subject: "Your password reset token (valid for 10 min)",
       message,
       resetUrl,
+    }).then(() => {
+      console.log({ email }, "email sent");
     });
     return res.status(200).json({ message: "Token sent to email" });
   } catch (error) {

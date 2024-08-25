@@ -11,7 +11,7 @@ import Header from "@components/common/Header";
 import { Toaster } from "@components/ui/toaster";
 
 import { io, Socket } from "socket.io-client";
-import { setSocket } from "@store/socketSlice";
+import { setSocket, setOnlineUsers } from "@store/socketSlice";
 const ProtectLayout = () => {
   const { pathname } = useLocation();
   const dispatch = useAppDispatch();
@@ -28,10 +28,14 @@ const ProtectLayout = () => {
       });
       dispatch(setSocket(socket.current));
     }
-
     const handleNewNotification = () => {
       refetchNotifications();
     };
+    socket.current?.on("getUsers", (users) => {
+      console.log({ users });
+      dispatch(setOnlineUsers(users));
+    });
+
     socket.current?.on("new-notification", handleNewNotification);
 
     return () => {

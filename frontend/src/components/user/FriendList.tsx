@@ -1,17 +1,25 @@
 import { Link } from "react-router-dom";
 import type { TUser } from "@typesFolder/authType";
 
+import { useAppSelector } from "@store/hooks";
+
 import FollowButton from "@components/user/FollowButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 const FriendList = ({
   user,
   type,
   column,
+  pos,
 }: {
   user: TUser;
   type?: string;
   column?: boolean;
+  pos?: string;
 }) => {
+  const { onlineUsers } = useAppSelector((state) => state.socket);
+
+  const isOnline = onlineUsers.includes(user._id);
+
   return (
     <>
       <div
@@ -38,13 +46,16 @@ const FriendList = ({
             </Link>
           </div>
         ) : (
-          <Link to={`/app/profile/${user._id}`}>
+          <Link to={`/app/profile/${user._id}`} className="relative">
             <Avatar>
               <AvatarImage src={user.profileImg?.url || ""} />
               <AvatarFallback>
                 {user.username.slice(0, 1).toUpperCase()}
               </AvatarFallback>
             </Avatar>
+            {pos === "contact" && isOnline && (
+              <div className="absolute bottom-1 z-10 w-3 h-3 rounded-full bg-green-500" />
+            )}
           </Link>
         )}
       </div>
