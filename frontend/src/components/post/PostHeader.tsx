@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
 import { openDialog, closeDialog } from "@store/uiSlice";
+
+import { useDeletePostMutation } from "@features/api/postSlice";
 // components
 import PostEditorForm from "@components/post/PostEditorForm";
 import {
@@ -23,6 +25,7 @@ import {
   AlertDialogTrigger,
 } from "@components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+import { useToast } from "@components/ui/use-toast";
 
 // types
 import { TPost } from "@typesFolder/postType";
@@ -49,16 +52,26 @@ const PostHeader = ({
   isDeletingSuccess,
 }: PostHeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [postId, setPostId] = useState("");
   const [oldText, setOldText] = useState("");
   const [oldImage, setOldImage] = useState("");
+
   const { isDialogOpen, type } = useAppSelector((state) => state.ui);
   const dispatch = useAppDispatch();
+  const [deletePost, { isLoading: isLoadingDelete }] = useDeletePostMutation();
+  const { toast } = useToast();
 
   // Check if the post has been updated
   const handleOpen = () => {
     setIsOpen(!isOpen);
   };
+
+  // const handleOpenChange = (open: boolean) => {
+  //   if (!isLoadingDelete) {
+  //     setAlertDialogOpen(open);
+  //   }
+  // };
   useEffect(() => {
     if (isDeletingSuccess) {
       setIsOpen(false);
@@ -71,6 +84,19 @@ const PostHeader = ({
     setOldText(post.text || "");
     setOldImage(post.img?.url || "");
     dispatch(openDialog("edit"));
+  };
+
+  const handleDelete = async () => {
+    try {
+      await deletePost(post._id).unwrap();
+      setAlertDialogOpen(false);
+      setIsOpen(false);
+      toast({
+        description: "Post deleted successfully",
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -119,43 +145,55 @@ const PostHeader = ({
                   <p>Edit</p>
                 </div>
 
-                {isLoading && (
+                {/* {isLoading && (
                   <Button disabled>
                     <ImSpinner2 className="mr-2 w-4 animate-spin" />
                     please wait
                   </Button>
-                )}
-                {!isLoading && (
-                  <AlertDialog>
-                    <AlertDialogTrigger>
-                      <div
-                        className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                )} */}
+
+                <AlertDialog open={alertDialogOpen}>
+                  <AlertDialogTrigger onClick={() => setAlertDialogOpen(true)}>
+                    <div
+                      className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                    >
+                      <FaTrashAlt className="" />
+                      <p>Delete</p>
+                    </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="w-[calc(100%-40px)] md:w-full">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="font-bold">
+                        Delete Post
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel
+                        disabled={isLoadingDelete}
+                        onClick={() => setAlertDialogOpen(false)}
                       >
-                        <FaTrashAlt className="" />
-                        <p>Delete</p>
-                      </div>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="w-[calc(100%-40px)] md:w-full">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="font-bold">
-                          Delete Post
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={onDelete}
-                          className="bg-red-500 hover:bg-red-600 text-white"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
+                        Cancel
+                      </AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDelete}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        disabled={isLoadingDelete}
+                      >
+                        {isLoadingDelete ? (
+                          <>
+                            please wait
+                            <ImSpinner2 className="ms-2 w-4 animate-spin" />
+                          </>
+                        ) : (
+                          "Delete"
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </PopoverContent>
           </Popover>

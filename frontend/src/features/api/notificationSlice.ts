@@ -23,8 +23,19 @@ export const notificationSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Notification"],
     }),
+    markNotificationAsRead: builder.mutation<void, void>({
+      query: () => ({
+        url: "/notifications/mark-as-read",
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Notification"],
+    }),
   }),
 });
 
-export const { useGetNotificationsQuery, useDeleteNotificationByIdMutation } =
-  notificationSlice;
+export const {
+  useGetNotificationsQuery,
+  useLazyGetNotificationsQuery,
+  useDeleteNotificationByIdMutation,
+  useMarkNotificationAsReadMutation,
+} = notificationSlice;

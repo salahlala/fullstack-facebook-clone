@@ -1,9 +1,12 @@
 import { generateTokenAndSetCookie } from "../lib/generateToken.js";
 import sendEmail from "../utils/email.js";
-
 import User from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
+
+// dotenv.config({ path: "./config.env" });
 
 const USER_LIMIT = 20;
 export const login = async (req, res) => {
@@ -109,6 +112,7 @@ export const logout = async (req, res) => {
   try {
     // res.clearCookie("jwt");
     res.cookie("jwt", "", { maxAge: 0 });
+    res.cookie("refreshToken", "", { maxAge: 0 });
     res.status(200).json({ message: "Logout successful" });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
@@ -137,19 +141,30 @@ export const refreshToken = async (req, res, next) => {
     return res.status(401).json({ message: "Token is missing" });
   }
   const refreshToken = cookies.refreshToken;
-  const decode = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-  if (!decode) {
-    return res.status(403).json({ message: "Invalid token" });
+  try {
+    const decode = jwt.verify(refreshToken, process.env.REFRESH_JWT_SECRET);
+    console.log({ decode }, "decode");
+    if (!decode) {
+      return res.status(403).json({ message: "Invalid token" });
+    }
+    const user = await User.findById(decode.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.changePasswordAfter(decode.iat)) {
+      return res
+        .status(401)
+        .json({ message: "User recently changed password" });
+    }
+    const accessToken = generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({ token: accessToken });
+  } catch (error) {
+    if (error.name === "TokenExpiredError") {
+      return res.status(401).json({ message: "Refresh token expired" });
+    } else {
+      return res.status(403).json({ message: "Invalid token" });
+    }
   }
-  const user = await User.findById(decode.id);
-  if (!user) {
-    return res.status(404).json({ message: "User not found" });
-  }
-  if (user.changePasswordAfter(decode.iat)) {
-    return res.status(401).json({ message: "User recently changed password" });
-  }
-  const accessToken = generateTokenAndSetCookie(user._id, res);
-  res.status(200).json({ token: accessToken });
 };
 
 export const forgotPassword = async (req, res, next) => {

@@ -6,7 +6,6 @@ import type { TUser } from "@typesFolder/authType";
 import FollowButton from "@components/user/FollowButton";
 import FriendList from "@components/user/FriendList";
 
-import { Button } from "@components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import {
   Dialog,
@@ -53,10 +52,10 @@ const Header = ({
       } items-center bg-card p-4 rounded gap-2`}
     >
       {!isMyProfile && (
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center flex-wrap">
           <FollowButton id={id} />
 
-          <Button className="button dark:bg-background">Message</Button>
+          {/* <Button className="button dark:bg-background">Message</Button> */}
         </div>
       )}
       <div className="flex items-center gap-3">
@@ -66,7 +65,7 @@ const Header = ({
           <div className="flex items-center gap-2">
             <Dialog onOpenChange={onOpenchange} open={dialogOpen}>
               <DialogTrigger>
-                <p className="text-sm text-gray-500 flex items-center">
+                <p className="text-[10px] md:text-sm text-gray-500 flex items-center">
                   {userProfile?.followers.length} followers
                 </p>
               </DialogTrigger>
@@ -90,7 +89,7 @@ const Header = ({
 
             <Dialog onOpenChange={handleOpenChange} open={followingDialogOpen}>
               <DialogTrigger>
-                <p className="text-sm text-gray-500 flex items-center">
+                <p className="text-[10px] md:text-sm text-gray-500 flex items-center">
                   {userProfile?.following.length} following
                 </p>
               </DialogTrigger>
@@ -115,7 +114,7 @@ const Header = ({
             </Dialog>
           </div>
         </div>
-        <Avatar className="w-[80px] h-[80px]">
+        <Avatar className="w-[60px] h-[60px]  md:w-[80px] md:h-[80px]">
           <AvatarImage src={userProfile?.profileImg?.url} />
           <AvatarFallback>{userProfile?.username.slice(0, 1)}</AvatarFallback>
         </Avatar>

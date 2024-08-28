@@ -21,19 +21,27 @@ import PostPage from "@pages/PostPage";
 import ChangePassword from "@components/auth/ChangePassword";
 import ForgotPassword from "@components/auth/ForgotPassword";
 import ResetPassword from "@components/auth/ResetPassword";
+import SessionDialog from "@components/auth/SessionDialog";
+
 import useAuth from "@hooks/useAuth";
+import { useAppSelector } from "@store/hooks";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoading, user } = useAuth();
+  const { type, isDialogOpen } = useAppSelector((state) => state.ui);
 
   if (!isLoading && !user?._id) {
-    console.log("triggre protect route");
     return <Navigate to="/login" replace />;
   }
 
   if (isLoading) return null;
 
-  return children;
+  return (
+    <>
+      {children}
+      {type == "sessionExpired" && isDialogOpen && <SessionDialog />}
+    </>
+  );
 };
 
 const RedirectRoute = ({ children }: { children: JSX.Element }) => {

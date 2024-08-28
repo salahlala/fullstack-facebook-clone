@@ -163,10 +163,8 @@ export const commentOnPost = async (req, res) => {
         type: "comment",
         postId: id,
       });
-      console.log(post.user.toString(), "post.user");
       await notification.save();
       const socketId = userMap.get(post.user.toString());
-      console.log(notification);
       if (socketId) {
         io.to(socketId).emit("new-notification", notification);
       }

@@ -32,7 +32,6 @@ const ProtectLayout = () => {
       refetchNotifications();
     };
     socket.current?.on("getUsers", (users) => {
-      console.log({ users });
       dispatch(setOnlineUsers(users));
     });
 

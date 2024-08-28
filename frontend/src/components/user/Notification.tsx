@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 
 import type { TNotification } from "@typesFolder/notificationType";
 
 import { useDeleteNotificationByIdMutation } from "@features/api/notificationSlice";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -21,7 +23,7 @@ import {
   PopoverTrigger,
 } from "@components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-import { Button } from "@components/ui/button";
+
 import { BsThreeDots } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";
 import { FaTrashAlt } from "react-icons/fa";
@@ -29,7 +31,7 @@ import { FaTrashAlt } from "react-icons/fa";
 const Notification = ({ notification }: { notification: TNotification }) => {
   const [deleteNotification, { isLoading }] =
     useDeleteNotificationByIdMutation();
-
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   let message = "";
   switch (notification.type) {
     case "like":
@@ -44,6 +46,12 @@ const Notification = ({ notification }: { notification: TNotification }) => {
     default:
       break;
   }
+
+  const handleDelete = async () => {
+    // setAlertDialogOpen(true);
+    await deleteNotification(notification._id).unwrap();
+    setAlertDialogOpen(false);
+  };
 
   return (
     <div className="bg-secondary rounded-md py-2 px-3 mb-3 relative">
@@ -97,47 +105,47 @@ const Notification = ({ notification }: { notification: TNotification }) => {
           </PopoverTrigger>
           <PopoverContent className="">
             <div className="flex flex-col gap-3">
-              {isLoading && (
-                <Button disabled>
-                  <ImSpinner2 className="mr-2 w-4 animate-spin" />
-                  please wait
-                </Button>
-              )}
-              {!isLoading && (
-                <AlertDialog>
-                  <AlertDialogTrigger>
-                    <div
-                      className={`${
-                        isLoading && "pointer-events-none opacity-15"
-                      } w-full flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+              <AlertDialog open={alertDialogOpen}>
+                <AlertDialogTrigger>
+                  <div
+                    className={`
+                    } w-full flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                    onClick={() => setAlertDialogOpen(true)}
+                  >
+                    <FaTrashAlt className="" />
+                    <p>Delete</p>
+                  </div>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle className="font-bold">
+                      Delete Notification
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isLoading}>
+                      Cancel
+                    </AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={handleDelete}
+                      disabled={isLoading}
+                      className="bg-red-500 hover:bg-red-600 text-white"
                     >
-                      <FaTrashAlt className="" />
-                      <p>Delete</p>
-                    </div>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle className="font-bold">
-                        Delete Notification
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure? This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() =>
-                          deleteNotification(notification._id).unwrap()
-                        }
-                        className="bg-red-500 hover:bg-red-600 text-white"
-                      >
-                        Delete
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
+                      {isLoading ? (
+                        <>
+                          please wait
+                          <ImSpinner2 className="ms-2 w-4 animate-spin" />
+                        </>
+                      ) : (
+                        <span>Delete</span>
+                      )}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </PopoverContent>
         </Popover>

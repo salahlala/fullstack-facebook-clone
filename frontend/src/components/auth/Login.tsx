@@ -58,7 +58,7 @@ const Login = () => {
   };
   // console.log(error, "error from out");
   return (
-    <div className="w-[340px] h-[320px] lg:w-[400px] lg:h-[350px] rounded-md p-4 shadow-xl bg-card">
+    <div className="w-[340px] min-h-[320px] lg:w-[400px] lg:h-[350px] rounded-md p-4 shadow-xl bg-card">
       <form onSubmit={handleSubmit} className="flex  flex-col gap-3">
         <Label htmlFor="email" className="text-foregronud">
           Email

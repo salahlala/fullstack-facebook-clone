@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAppSelector } from "@store/hooks";
 import { useDeleteCommentMutation } from "@features/api/postSlice";
@@ -57,6 +58,15 @@ const PostBody = ({
 }: PostBodyProps) => {
   const { user: userLogin } = useAppSelector((state) => state.auth);
   const [deleteComment, { isLoading }] = useDeleteCommentMutation();
+  const [alertDialogOpen, setAlertDialogOpen] = useState(false);
+
+  const handleDeleteComment = async (comment: TComment) => {
+    await deleteComment({
+      postId: post._id,
+      commentId: comment._id,
+    }).unwrap();
+    setAlertDialogOpen(false);
+  };
   const renderLikeContent = (user: User) => {
     // const checkFollowing = userLogin.following.find((u) => u._id === user._id);
     return (
@@ -110,50 +120,43 @@ const PostBody = ({
             </PopoverTrigger>
             <PopoverContent>
               <div className="flex flex-col gap-3">
-                {isLoading && (
-                  <Button disabled>
-                    <ImSpinner2 className="mr-2 w-4 animate-spin" />
-                    please wait
-                  </Button>
-                )}
-                {!isLoading && (
-                  <AlertDialog>
-                    <AlertDialogTrigger>
-                      <div
-                        className={`${
-                          isLoading && "pointer-events-none opacity-15"
-                        } w-full flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                <AlertDialog open={alertDialogOpen}>
+                  <AlertDialogTrigger onClick={() => setAlertDialogOpen(true)}>
+                    <div
+                      className={` w-full flex items-center gap-1 cursor-pointer dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                    >
+                      <FaTrashAlt className="" />
+                      <p>Delete</p>
+                    </div>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle className="font-bold">
+                        Delete Comment
+                      </AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDeleteComment(comment)}
+                        className="bg-red-500 hover:bg-red-600 text-white"
+                        disabled={isLoading}
                       >
-                        <FaTrashAlt className="" />
-                        <p>Delete</p>
-                      </div>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle className="font-bold">
-                          Delete Post
-                        </AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure? This action cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() =>
-                            deleteComment({
-                              postId: post._id,
-                              commentId: comment._id,
-                            })
-                          }
-                          className="bg-red-500 hover:bg-red-600 text-white"
-                        >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                )}
+                        {isLoading ? (
+                          <>
+                            please wait
+                            <ImSpinner2 className="ms-2 w-4 animate-spin" />
+                          </>
+                        ) : (
+                          <span>Delete</span>
+                        )}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </PopoverContent>
           </Popover>

@@ -45,7 +45,6 @@ const HomePage = () => {
   useEffect(() => {
     const handleRefetchPosts = () => {
       refetchPosts();
-      console.log("refetch posts");
     };
 
     const events = ["create-post", "update-post", "delete-post"];
@@ -152,7 +151,9 @@ const HomePage = () => {
             <h1>Gaming</h1>
           </div>
         </div>
-        <div className="mid  basis-full xl:basis-1/2 w-full p-4 mt-[70px]">
+
+        {/* middle */}
+        <div className="  basis-full xl:basis-1/2 w-full p-4 mt-[70px]">
           <Carousel
             className="z-0 mb-4 "
             opts={{ slidesToScroll: 1, dragFree: true }}
@@ -187,7 +188,8 @@ const HomePage = () => {
             </div>
           )}
         </div>
-        <div className="right  flex-col basis-1/4 hidden xl:flex h-[calc(100vh-70px)] p-4  sticky top-[70px]">
+        {/* right */}
+        <div className="  flex-col basis-1/4 hidden xl:flex h-[calc(100vh-70px)] p-4  sticky top-[70px]">
           {/* <div className="flex items-cetner gap-4"></div> */}
           <div className="card-scroll">
             <div className="sticky top-0 bg-card z-20 p-4 flex justify-between items-center text-card-foreground">

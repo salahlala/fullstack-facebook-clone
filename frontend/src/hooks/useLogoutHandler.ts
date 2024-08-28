@@ -16,7 +16,7 @@ const useLogoutHandler = () => {
         .then(() => {
           dispatch(logoutAction());
           dispatch(apiSlice.util.resetApiState());
-          navigate("/login", { replace: true });
+          navigate("/", { replace: true });
         });
     } catch (error) {
       console.log(error, "error from logout");

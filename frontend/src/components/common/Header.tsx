@@ -8,13 +8,15 @@ import { logout as logoutAction } from "@store/authSlice";
 import { apiSlice } from "@features/api/apiSlice";
 import { useLogoutMutation } from "@features/api/authSlice";
 import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userSlice";
-import { useGetNotificationsQuery } from "@features/api/notificationSlice";
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationAsReadMutation,
+} from "@features/api/notificationSlice";
 
 import SearchList from "@components/user/SearchList";
 import SuggestedUser from "@components/user/SuggestedUser";
 import Notification from "@components/user/Notification";
 
-import { Badge } from "@components/ui/badge";
 import { Input } from "@components/ui/input";
 import {
   Sheet,
@@ -41,18 +43,20 @@ import { ModeToggle } from "@components/mode-toggle";
 import { FaUserFriends, FaBars } from "react-icons/fa";
 import { MdGroups2, MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
-import { BsFillBellFill, BsMessenger } from "react-icons/bs";
+import { BsFillBellFill } from "react-icons/bs";
 import { IoMdSearch } from "react-icons/io";
 
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
   const { data: notifications } = useGetNotificationsQuery();
+  const [markNotificationAsRead] = useMarkNotificationAsReadMutation();
   const [isAnimated, setIsAnimated] = useState(false);
   const [name, setName] = useState("");
   const [debonceName, setDebonceName] = useState("");
   const [open, setOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [openNotification, setOpenNotification] = useState(false);
   const { data: usersData, isLoading: isSearchLoading } = useSearchUsersQuery(
     debonceName,
     {
@@ -90,7 +94,9 @@ const Header = () => {
   const handleDialogChange = (open: boolean) => {
     setOpen(open);
   };
-
+  const handleNotificationChange = (open: boolean) => {
+    setOpenNotification(open);
+  };
   const handleSheetChange = (open: boolean) => {
     setSheetOpen(open);
   };
@@ -102,21 +108,23 @@ const Header = () => {
   }, [location]);
 
   useEffect(() => {
+    if (openNotification && notifications?.length) {
+      markNotificationAsRead();
+    }
     setIsAnimated(true);
     const timeout = setTimeout(() => {
       setIsAnimated(false);
     }, 500);
 
-    console.log(notifications?.length, "is animated");
     return () => clearTimeout(timeout);
-  }, [notifications?.length]);
+  }, [notifications?.length, markNotificationAsRead, openNotification]);
 
   return (
-    <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between gap-7 ">
+    <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between md:gap-7 gap-2  ">
       <Link to="/app">
         <h1 className="text-2xl font-bold ">facebook</h1>
       </Link>
-      <div className="xl:hidden">
+      <div className="xl:hidden flex">
         <Sheet open={sheetOpen} onOpenChange={handleSheetChange}>
           <SheetTrigger>
             <FaBars />
@@ -153,21 +161,24 @@ const Header = () => {
           </div>
         </DialogContent>
       </Dialog>
-      <div className="hidden lg:flex items-center gap-4 justify-between w-full text-secondary-foreground">
-        <div className="w-[30px] h-[30px] grid place-items-center rounded-md  ">
+      {/* <div className="hidden lg:flex items-center gap-4 justify-between w-full text-secondary-foreground">
+        <div className="icon  ">
           <FaUserFriends className="text-2xl" />
         </div>
-        <div className="w-[30px] h-[30px] grid place-items-center rounded-md ">
+        <div className="icon ">
           <MdGroups2 className="text-2xl" />
         </div>
-        <div className="w-[30px] h-[30px] grid place-items-center rounded-md ">
+        <div className="icon ">
           <GoVideo className="text-2xl" />
         </div>
-      </div>
-      <div className="flex gap-3 items-center justify-end w-full text-secondary-foreground">
-        <Popover>
+      </div> */}
+      <div className="flex gap-3 items-center justify-end md:w-full text-secondary-foreground">
+        <Popover
+          onOpenChange={handleNotificationChange}
+          open={openNotification}
+        >
           <PopoverTrigger>
-            <div className="w-[30px] h-[30px] grid place-items-center rounded-md relative">
+            <div className="icon relative">
               <BsFillBellFill className="" />
 
               <div
@@ -181,7 +192,7 @@ const Header = () => {
           </PopoverTrigger>
           <PopoverContent
             className={`${
-              !notifications?.length ? "hidden" : ""
+              !notifications?.notifications?.length ? "hidden" : ""
             } max-h-[400px] overflow-y-auto hide-scrollbar`}
           >
             {notifications?.notifications.map((notification) => (
@@ -192,10 +203,6 @@ const Header = () => {
             ))}
           </PopoverContent>
         </Popover>
-
-        <div className="w-[30px] h-[30px] grid place-items-center  ">
-          <BsMessenger className="" />
-        </div>
 
         <Popover>
           <PopoverTrigger>
@@ -231,7 +238,6 @@ const Header = () => {
         </Popover>
         <ModeToggle />
       </div>
-      <div></div>
     </div>
   );
 };
