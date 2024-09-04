@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch } from "@store/hooks";
 
 import { login } from "@store/authSlice";
-import { useResetPasswordMutation } from "@features/api/authSlice";
+import { useResetPasswordMutation } from "@features/api/authApiSlice";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Button } from "@components/ui/button";

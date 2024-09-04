@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useUpdateUserProfileMutation } from "@features/api/userSlice";
+import { useUpdateUserProfileMutation } from "@features/api/userApiSlice";
 import { useToast } from "@components/ui/use-toast";
 import type { ApiError } from "@typesFolder/apiError";
 

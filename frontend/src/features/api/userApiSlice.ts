@@ -73,7 +73,7 @@ export const userSlice = apiSlice.injectEndpoints({
         return [
           { type: "User", id },
           { type: "User", id: userId },
-          { type: "Post", id: "LIST" },
+          { type: "Post" as const, id: "LIST" },
           { type: "User", id: "SUGGESTED" },
         ];
       },

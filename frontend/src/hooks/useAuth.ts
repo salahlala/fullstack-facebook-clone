@@ -1,4 +1,4 @@
-import { useGetMeQuery } from "@features/api/userSlice";
+import { useGetMeQuery } from "@features/api/userApiSlice";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
 import { login as loginAction } from "@store/authSlice";
 import useLogoutHandler from "./useLogoutHandler";
@@ -33,7 +33,6 @@ const useAuth = () => {
       }
     }
 
-    
     if (!isLoading && isError) {
       console.log(error, "get me auth");
     }

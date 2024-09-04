@@ -25,8 +25,8 @@ export const userProfile = async (req, res) => {
     // const user = await User.findOne({ username });
     const { id } = req.params;
     const user = await User.findOne({ _id: id })
-      .populate("followers", "username profileImg fullName")
-      .populate("following", "username profileImg fullName");
+      .populate("followers", "username profileImg fullName bio followers ")
+      .populate("following", "username profileImg fullName bio followers");
 
     if (!user) {
       return res.status(404).json({ message: "no user with this name" });
@@ -131,6 +131,7 @@ export const getSuggestedUsers = async (req, res) => {
           profileImg: 1,
           following: 1,
           followers: 1,
+          bio: 1,
         },
       },
       // Add a $sort stage to get a consistent order

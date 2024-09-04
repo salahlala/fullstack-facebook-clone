@@ -4,7 +4,7 @@ import { useNavigate } from "react-router";
 
 // import { useAppSelector } from "@store/hooks";
 
-import { useSignupMutation } from "@features/api/authSlice";
+import { useSignupMutation } from "@features/api/authApiSlice";
 import type { ApiError } from "@typesFolder/apiError";
 
 import { Button } from "@components/ui/button";

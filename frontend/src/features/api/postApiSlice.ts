@@ -1,5 +1,6 @@
 import { apiSlice } from "@features/api/apiSlice";
-import { TPost, TComment } from "@typesFolder/postType";
+import type { TPost, TComment } from "@typesFolder/postType";
+import type { TUser } from "@typesFolder/authType";
 import { ApiError } from "@typesFolder/apiError";
 import { store } from "@store/index";
 
@@ -37,10 +38,7 @@ export const postSlice = apiSlice.injectEndpoints({
       },
       providesTags: (result) =>
         result
-          ? [
-              { type: "Post", id: result._id },
-              { type: "Post", id: "LIST" },
-            ]
+          ? [{ type: "Post" as const, id: result._id }]
           : [{ type: "Post", id: "LIST" }],
     }),
     getMyPosts: builder.query<TPost[], void>({
@@ -68,9 +66,9 @@ export const postSlice = apiSlice.injectEndpoints({
                 type: "Post" as const,
                 id: _id,
               })),
-              { type: "Post", id: "LIST" },
+              // { type: "Post" as const, id: "LIST" },
             ]
-          : [{ type: "Post", id: "LIST" }],
+          : [],
     }),
     getUserPosts: builder.query<TPost[], string>({
       query: (id: string) => `/posts/user/id/${id}`,
@@ -97,17 +95,22 @@ export const postSlice = apiSlice.injectEndpoints({
     getLikedPosts: builder.query<TPost[], void>({
       query: (id) => `/posts/like/${id}`,
     }),
-    getLikedPostDetails: builder.query<TPost, string>({
+    getLikedPostDetails: builder.query<TUser[], string>({
       query: (id) => `/posts/like/detail/${id}`,
 
-      transformResponse: (response: { data: TPost }) => response.data,
+      transformResponse: (response: { data: TUser[] }) => response.data,
+      // invalidatesTags: (_, __, id: string) => [
+      //   { type: "Post", id: `POST_LIKES_${id}` },
+      // ],
     }),
     getPostComments: builder.query<TComment[], string>({
-      query: (id) => `/posts/comments/${id}`,
+      query: (id) => `/posts/${id}/comments`,
 
       transformResponse: (response: { data: TComment[] }) => response.data,
-
-      providesTags: (_, __, id) => [{ type: "Post", id }],
+      // providesTags: (_, __, id) => [
+      //   // { type: "Post" as const, id },
+      //   // { type: "Post", id: `POST_COMMENTS_${id}` },
+      // ],
     }),
     createPost: builder.mutation<TPost, FormData>({
       query: (data) => ({
@@ -121,13 +124,13 @@ export const postSlice = apiSlice.injectEndpoints({
           message: err.data.message || "some error",
         };
       },
-      invalidatesTags: (result) =>
-        result
-          ? [
-              { type: "Post", id: `USER_POSTS_${result.user}` },
-              { type: "Post", id: "LIST" },
-            ]
-          : [{ type: "Post", id: "LIST" }],
+      // invalidatesTags: (result) =>
+      //   result
+      //     ? [
+      //         { type: "Post", id: `USER_POSTS_${result.user}` },
+      //         { type: "Post", id: "LIST" },
+      //       ]
+      //     : [{ type: "Post", id: "LIST" }],
     }),
     addComment: builder.mutation<TPost, { text: string; postId: string }>({
       query: (data) => ({
@@ -136,23 +139,23 @@ export const postSlice = apiSlice.injectEndpoints({
         body: data,
       }),
 
-      invalidatesTags: (_, __, { postId }) => {
-        const userId = store.getState().auth.user._id;
-        return [
-          { type: "Post", id: postId },
-          { type: "User", id: userId },
-        ];
-      },
+      // invalidatesTags: () => {
+      //   const userId = store.getState().auth.user._id;
+      //   return [
+      //     // { type: "Post", id: `POST_COMMENTS_${postId}` },
+      //     { type: "User", id: userId },
+      //   ];
+      // },
     }),
     addLike: builder.mutation<TPost, { id: string }>({
       query: ({ id }) => ({
         url: `/posts/like/${id}`,
         method: "POST",
       }),
-      invalidatesTags: (_, __, { id }) => {
+      invalidatesTags: () => {
         const userId = store.getState().auth.user._id;
         return [
-          { type: "Post", id },
+          // { type: "Post", id: `POST_LIKES_${id}` },
           { type: "User", id: userId },
         ];
       },
@@ -164,7 +167,6 @@ export const postSlice = apiSlice.injectEndpoints({
         url: `/posts/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: [{ type: "Post", id: "LIST" }],
     }),
     updatePost: builder.mutation<TPost, FormData>({
       query: (formData) => {
@@ -182,25 +184,26 @@ export const postSlice = apiSlice.injectEndpoints({
           message: err.data.message || "some error",
         };
       },
-      invalidatesTags: (_, __, formData) => {
-        const postId = formData.get("postId") as string;
-        return [{ type: "Post", id: postId }];
-      },
+      // invalidatesTags: (_, __, formData) => {
+      //   const postId = formData.get("postId") as string;
+      //   return [{ type: "Post" as const, id: postId }];
+      // },
     }),
     deleteComment: builder.mutation({
       query: ({ postId, commentId }) => ({
         url: `/posts/comment/${postId}/${commentId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (_, __, { postId }) => {
-        const userId = store.getState().auth.user._id;
-        return [
-          { type: "Post", id: postId },
-          { type: "User", id: userId },
-        ];
-      },
+      // invalidatesTags: () => {
+      //   const userId = store.getState().auth.user._id;
+      //   return [
+      //     // { type: "Post", id: postId },
+      //     { type: "User", id: userId },
+      //   ];
+      // },
     }),
   }),
+  overrideExisting: false,
 });
 
 export const {

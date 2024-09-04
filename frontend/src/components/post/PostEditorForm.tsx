@@ -4,7 +4,7 @@ import { useAppDispatch } from "@store/hooks";
 import {
   useCreatePostMutation,
   useUpdatePostMutation,
-} from "@features/api/postSlice";
+} from "@features/api/postApiSlice";
 
 import type { ApiError } from "@typesFolder/apiError";
 

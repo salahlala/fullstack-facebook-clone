@@ -9,6 +9,8 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 import globalErrorHandler from "./controller/errorController.js";
 
@@ -37,6 +39,8 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/chats", chatRoutes);
 app.use(globalErrorHandler);
 
 const server = app.listen(PORT, () => {

@@ -8,7 +8,8 @@ import dotenv from "dotenv";
 
 // dotenv.config({ path: "./config.env" });
 
-const USER_LIMIT = 20;
+const USER_LIMIT = process.env.USER_LIMIT;
+
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -121,10 +122,9 @@ export const logout = async (req, res) => {
 
 export const getMe = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id).populate(
-      "following",
-      "_id username profileImg fullName"
-    );
+    const user = await User.findById(req.user._id)
+      .populate("following", " username profileImg fullName bio followers")
+      .populate("followers", " username profileImg fullName bio followers");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }

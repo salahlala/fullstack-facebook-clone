@@ -6,26 +6,18 @@ import { useAppDispatch } from "@store/hooks";
 import { logout as logoutAction } from "@store/authSlice";
 
 import { apiSlice } from "@features/api/apiSlice";
-import { useLogoutMutation } from "@features/api/authSlice";
-import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userSlice";
+import { useLogoutMutation } from "@features/api/authApiSlice";
+import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userApiSlice";
 import {
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
-} from "@features/api/notificationSlice";
+} from "@features/api/notificationApiSlice";
 
 import SearchList from "@components/user/SearchList";
-import SuggestedUser from "@components/user/SuggestedUser";
 import Notification from "@components/user/Notification";
 
 import { Input } from "@components/ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@components/ui/sheet";
+
 import {
   Dialog,
   DialogTrigger,
@@ -40,12 +32,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { ModeToggle } from "@components/mode-toggle";
 
-import { FaUserFriends, FaBars } from "react-icons/fa";
-import { MdGroups2, MdLogout, MdSettings, MdPerson } from "react-icons/md";
-import { GoVideo } from "react-icons/go";
+import { FaUserFriends } from "react-icons/fa";
+import { FaFacebookMessenger } from "react-icons/fa6";
+import { MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { BsFillBellFill } from "react-icons/bs";
 import { IoMdSearch } from "react-icons/io";
-
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
@@ -55,7 +46,7 @@ const Header = () => {
   const [name, setName] = useState("");
   const [debonceName, setDebonceName] = useState("");
   const [open, setOpen] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
+
   const [openNotification, setOpenNotification] = useState(false);
   const { data: usersData, isLoading: isSearchLoading } = useSearchUsersQuery(
     debonceName,
@@ -97,13 +88,10 @@ const Header = () => {
   const handleNotificationChange = (open: boolean) => {
     setOpenNotification(open);
   };
-  const handleSheetChange = (open: boolean) => {
-    setSheetOpen(open);
-  };
 
   useEffect(() => {
     setOpen(false);
-    setSheetOpen(false);
+    // setSheetOpen(false);
     setName("");
   }, [location]);
 
@@ -124,7 +112,7 @@ const Header = () => {
       <Link to="/app">
         <h1 className="text-2xl font-bold ">facebook</h1>
       </Link>
-      <div className="xl:hidden flex">
+      {/* <div className="xl:hidden flex">
         <Sheet open={sheetOpen} onOpenChange={handleSheetChange}>
           <SheetTrigger>
             <FaBars />
@@ -138,7 +126,7 @@ const Header = () => {
             </SheetHeader>
           </SheetContent>
         </Sheet>
-      </div>
+      </div> */}
       <Dialog open={open} onOpenChange={handleDialogChange}>
         <DialogTrigger className=" ">
           <div className="md:block hidden text-start bg-background hover:bg-secondary transition-colors duration-100 rounded-md px-4 py-1  md:w-[200px]">
@@ -161,6 +149,12 @@ const Header = () => {
           </div>
         </DialogContent>
       </Dialog>
+      <Link to="/app/suggested-users" className="lg:hidden">
+        <div className="icon  ">
+          <FaUserFriends className="text-2xl" />
+        </div>
+      </Link>
+
       {/* <div className="hidden lg:flex items-center gap-4 justify-between w-full text-secondary-foreground">
         <div className="icon  ">
           <FaUserFriends className="text-2xl" />
@@ -173,12 +167,18 @@ const Header = () => {
         </div>
       </div> */}
       <div className="flex gap-3 items-center justify-end md:w-full text-secondary-foreground">
+        <Link to="/app/messenger">
+          <div className="icon hover:bg-secondary transition-colors">
+            <FaFacebookMessenger className="" />
+          </div>
+        </Link>
+
         <Popover
           onOpenChange={handleNotificationChange}
           open={openNotification}
         >
           <PopoverTrigger>
-            <div className="icon relative">
+            <div className="icon relative hover:bg-secondary transition-colors">
               <BsFillBellFill className="" />
 
               <div

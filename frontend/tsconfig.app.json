@@ -27,12 +27,14 @@
       "@components/*": ["src/components/*"],
       "@pages/*": ["src/pages/*"],
       "@lib/*": ["src/lib/*"],
+      "@utils/*": ["src/utils/*"],
       "@hooks/*": ["src/hooks/*"],
       "@typesFolder/*": ["src/typesFolder/*"],
       "@routes/*": ["src/routes/*"],
       "@layouts/*": ["src/layouts/*"],
       "@features/*": ["src/features/*"],
       "@store/*": ["src/store/*"],
+      "@assets/*": ["src/assets/*"],
       "@": ["src"]
       // "@/": ["/*"]
     }

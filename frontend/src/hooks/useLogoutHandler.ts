@@ -1,5 +1,5 @@
 import { apiSlice } from "@features/api/apiSlice";
-import { useLogoutMutation } from "@features/api/authSlice";
+import { useLogoutMutation } from "@features/api/authApiSlice";
 import { useAppDispatch } from "@store/hooks";
 import { logout as logoutAction } from "@store/authSlice";
 import { useNavigate } from "react-router";

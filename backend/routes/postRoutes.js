@@ -45,7 +45,7 @@ router.get("/like/:id", getLikedPosts);
 router.get("/like/detail/:id", getLikedPostDetails);
 
 // get comment post of the user
-router.get("/comments/:id", getPostComments);
+router.get("/:id/comments", getPostComments);
 // get following post
 router.get("/following", getFollowingPosts);
 // get posts of the user by the username
@@ -55,7 +55,6 @@ router.get("/user/id/:userId", getUserPostsWithId);
 
 // get my posts
 router.get("/me", getMyPosts);
-
 // get post by id
 router.get("/:id", getPostById);
 // delete comment

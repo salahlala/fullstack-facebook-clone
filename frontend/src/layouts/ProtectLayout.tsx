@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Outlet } from "react-router";
 import { useLocation } from "react-router-dom";
 
-import { useGetNotificationsQuery } from "@features/api/notificationSlice";
+import { useGetNotificationsQuery } from "@features/api/notificationApiSlice";
 
 import { closeAllDialogs } from "@store/dialogUiSlice";
 import { useAppDispatch, useAppSelector } from "@store/hooks";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useLoginMutation } from "@features/api/authSlice";
+import { useLoginMutation } from "@features/api/authApiSlice";
 import { useAppDispatch } from "@store/hooks";
 import { login as loginAction } from "@store/authSlice";
 

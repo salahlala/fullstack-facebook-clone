@@ -4,6 +4,7 @@ import type { TUser } from "@typesFolder/authType";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { ImSpinner2 } from "react-icons/im";
 
+import defaultProfile from "@assets/default-profile.png";
 interface SearchListProps {
   users: TUser[] | undefined;
   isSearchLoading: boolean;
@@ -18,7 +19,7 @@ const SearchList = ({ users, isSearchLoading }: SearchListProps) => {
           className="flex items-center gap-3 mb-3 cursor-pointer transition hover:bg-black/10 dark:hover:bg-white/10 p-3 rounded-md"
         >
           <Avatar className="w-10 h-10">
-            <AvatarImage src={user.profileImg.url} />
+            <AvatarImage src={user.profileImg.url || defaultProfile} />
             <AvatarFallback>
               {user.username.slice(0, 1).toUpperCase()}
             </AvatarFallback>

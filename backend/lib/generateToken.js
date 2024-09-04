@@ -2,10 +2,10 @@ import jwt from "jsonwebtoken";
 
 export const generateTokenAndSetCookie = (id, res) => {
   const token = jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: "10s",
+    expiresIn: "1h",
   });
   const refreshToken = jwt.sign({ id }, process.env.REFRESH_JWT_SECRET, {
-    expiresIn: "20s",
+    expiresIn: "7d",
   });
   const cookieOptions = (maxAge) => ({
     maxAge,

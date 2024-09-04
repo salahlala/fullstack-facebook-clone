@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useForgotPasswordMutation } from "@features/api/authSlice";
+import { useForgotPasswordMutation } from "@features/api/authApiSlice";
 import type { ApiError } from "@typesFolder/apiError";
 
 import { Input } from "@components/ui/input";

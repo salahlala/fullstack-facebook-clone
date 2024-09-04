@@ -3,8 +3,11 @@ import { useParams } from "react-router-dom";
 import {
   useGetUserPostsQuery,
   useGetMyPostsQuery,
-} from "@features/api/postSlice";
-import { useGetMeQuery, useGetUserProfileQuery } from "@features/api/userSlice";
+} from "@features/api/postApiSlice";
+import {
+  useGetMeQuery,
+  useGetUserProfileQuery,
+} from "@features/api/userApiSlice";
 
 import CreatePost from "@components/post/CreatePost";
 import Header from "@components/profile/Header";
@@ -28,6 +31,7 @@ const ProfilePage = () => {
     ? myPostsQuery
     : userPostsQuery;
 
+  console.log(userProfile, "userProfile");
   return (
     <div className="min-h-screen pt-[70px] container mx-auto px-4">
       <Header

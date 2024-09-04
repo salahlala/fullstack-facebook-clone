@@ -127,13 +127,13 @@
 
 @layer components {
   .button {
-    @apply !mt-4 shadow-md transition-colors bg-primary text-white hover:bg-card hover:text-black dark:bg-card dark:text-white dark:hover:bg-secondary;
+    @apply !mt-4 w-full shadow-md transition-colors bg-primary text-white hover:bg-card hover:text-black dark:bg-card dark:text-white dark:hover:bg-secondary;
   }
   .card-scroll {
     @apply bg-card rounded-md mb-4 basis-1/2 overflow-y-auto hide-scrollbar;
   }
   .icon {
-    @apply w-[30px] h-[30px] grid place-items-center rounded-md;
+    @apply w-[30px] h-[30px] grid place-items-center rounded-full;
   }
 }
 .hide-scrollbar::-webkit-scrollbar {

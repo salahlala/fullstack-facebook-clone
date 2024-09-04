@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
-import { useAppSelector, useAppDispatch } from "@store/hooks";
-import { openDialog, closeDialog } from "@store/uiSlice";
 
-import { useDeletePostMutation } from "@features/api/postSlice";
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { openDialog } from "@store/uiSlice";
+
+import { useDeletePostMutation } from "@features/api/postApiSlice";
 // components
 import PostEditorForm from "@components/post/PostEditorForm";
+import CardHover from "@components/user/CardHover";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@components/ui/popover";
-import { Button } from "@components/ui/button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,10 +33,10 @@ import { TPost } from "@typesFolder/postType";
 // icons
 import { BsThreeDots } from "react-icons/bs";
 import { MdEdit } from "react-icons/md";
-import { IoReload } from "react-icons/io5";
 import { FaTrashAlt } from "react-icons/fa";
 import { ImSpinner2 } from "react-icons/im";
 
+import defaultProfile from "@assets/default-profile.png";
 interface PostHeaderProps {
   post: TPost;
   userId: string | undefined;
@@ -48,7 +49,7 @@ const PostHeader = ({
   post,
   userId,
   isLoading,
-  onDelete,
+
   isDeletingSuccess,
 }: PostHeaderProps) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,6 +76,7 @@ const PostHeader = ({
   useEffect(() => {
     if (isDeletingSuccess) {
       setIsOpen(false);
+      setAlertDialogOpen(false);
     }
   }, [isDeletingSuccess]);
 
@@ -104,7 +106,7 @@ const PostHeader = ({
       <div className="flex items-center gap-3">
         <Link to={`/app/profile/${post.user._id}`}>
           <Avatar className="w-[60px] h-[60px]">
-            <AvatarImage src={post.user.profileImg?.url || ""} />
+            <AvatarImage src={post.user.profileImg?.url || defaultProfile} />
             <AvatarFallback>
               {post.user.username?.slice(0, 1).toUpperCase()}
             </AvatarFallback>
@@ -113,11 +115,7 @@ const PostHeader = ({
         </Link>
 
         <div className="">
-          <Link to={`/app/profile/${post.user._id}`}>
-            <h2 className="font-bold text-xl text-card-foreground">
-              {post.user.username}
-            </h2>
-          </Link>
+          <CardHover user={post.user} />
           <p className="font-medium dark:text-white/60 text-black/60 text-sm">
             <ReactTimeAgo
               date={new Date(post?.createdAt || Date.now())}

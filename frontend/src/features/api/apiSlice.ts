@@ -23,7 +23,9 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
         api,
         extraOptions
       );
+
       if (refreshResult?.data) {
+        console.log("sending refresh token");
         api.dispatch(login(user));
 
         result = await baseQuery(args, api, extraOptions);
@@ -44,7 +46,7 @@ const baseQueryWithReauth = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
   reducerPath: "api",
   baseQuery: baseQueryWithReauth,
-  tagTypes: ["Post", "User", "Notification"],
+  tagTypes: ["Post", "User", "Notification", "Message", "Chats", "Chat"],
   keepUnusedDataFor: 30,
   endpoints: () => ({}),
 });

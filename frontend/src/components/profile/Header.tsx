@@ -5,7 +5,8 @@ import type { TUser } from "@typesFolder/authType";
 
 import FollowButton from "@components/user/FollowButton";
 import FriendList from "@components/user/FriendList";
-
+import MessageButton from "@components/messenger/MessageButton";
+import { Button } from "@components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import {
   Dialog,
@@ -16,6 +17,7 @@ import {
 
 import { ImSpinner2 } from "react-icons/im";
 
+import defaultProfile from "@assets/default-profile.png";
 interface IHeaderProps {
   id: string;
   userProfile: TUser | undefined;
@@ -52,15 +54,17 @@ const Header = ({
       } items-center bg-card p-4 rounded gap-2`}
     >
       {!isMyProfile && (
-        <div className="flex items-center flex-wrap">
+        <div className="flex items-center gap-2">
           <FollowButton id={id} />
 
-          {/* <Button className="button dark:bg-background">Message</Button> */}
+          <MessageButton reciver={userProfile as TUser} />
         </div>
       )}
       <div className="flex items-center gap-3">
         <div className="text">
-          <h1>{userProfile?.fullName}</h1>
+          <h1 className="text-xl font-bold capitalize">
+            {userProfile?.fullName}
+          </h1>
           <p className="text-sm text-gray-500">{userProfile?.bio}</p>
           <div className="flex items-center gap-2">
             <Dialog onOpenChange={onOpenchange} open={dialogOpen}>
@@ -69,7 +73,10 @@ const Header = ({
                   {userProfile?.followers.length} followers
                 </p>
               </DialogTrigger>
-              <DialogContent aria-describedby={undefined}>
+              <DialogContent
+                aria-describedby={undefined}
+                className="w-[calc(100%-40px)] md:w-full max-h-[calc(100vh-300px)] overflow-y-auto  hide-scrollbar "
+              >
                 <DialogTitle>Followers</DialogTitle>
                 {userProfile?.followers.map((follower) => (
                   <FriendList
@@ -93,7 +100,10 @@ const Header = ({
                   {userProfile?.following.length} following
                 </p>
               </DialogTrigger>
-              <DialogContent aria-describedby={undefined}>
+              <DialogContent
+                aria-describedby={undefined}
+                className="w-[calc(100%-40px)] md:w-full max-h-[calc(100vh-300px)] overflow-y-auto  hide-scrollbar"
+              >
                 <DialogTitle>Following</DialogTitle>
                 {userProfile?.following.map((follower) => (
                   <FriendList
@@ -115,7 +125,7 @@ const Header = ({
           </div>
         </div>
         <Avatar className="w-[60px] h-[60px]  md:w-[80px] md:h-[80px]">
-          <AvatarImage src={userProfile?.profileImg?.url} />
+          <AvatarImage src={userProfile?.profileImg?.url || defaultProfile} />
           <AvatarFallback>{userProfile?.username.slice(0, 1)}</AvatarFallback>
         </Avatar>
         {/* <img

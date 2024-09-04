@@ -5,6 +5,10 @@ import { useAppSelector } from "@store/hooks";
 
 import FollowButton from "@components/user/FollowButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+import OnlineStatus from "@components/messenger/OnlineStatus";
+import CardHover from "@components/user/CardHover";
+
+import defaultProfile from "@assets/default-profile.png";
 const FriendList = ({
   user,
   type,
@@ -16,10 +20,6 @@ const FriendList = ({
   column?: boolean;
   pos?: string;
 }) => {
-  const { onlineUsers } = useAppSelector((state) => state.socket);
-
-  const isOnline = onlineUsers.includes(user._id);
-
   return (
     <>
       <div
@@ -28,19 +28,16 @@ const FriendList = ({
           column && " flex-col-reverse"
         } gap-4 items-center justify-between`}
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-grow justify-between">
           {type === "follow" ? <FollowButton id={user._id} /> : null}
-
-          <Link to={`/app/profile/${user._id}`} className="">
-            <h2>{user.username}</h2>
-          </Link>
+          <CardHover user={user} />
         </div>
         {column ? (
           <div className="w-[150px] h-[150px] bg-secondary rounded-md">
             <Link to={`/app/profile/${user._id}`}>
               <img
-                src={user.profileImg?.url || ""}
-                alt={user.username}
+                src={user.profileImg?.url || defaultProfile}
+                alt={user.fullName}
                 className="w-full h-full rounded-md"
               />
             </Link>
@@ -48,14 +45,12 @@ const FriendList = ({
         ) : (
           <Link to={`/app/profile/${user._id}`} className="relative">
             <Avatar>
-              <AvatarImage src={user.profileImg?.url || ""} />
+              <AvatarImage src={user.profileImg?.url || defaultProfile} />
               <AvatarFallback>
                 {user.username.slice(0, 1).toUpperCase()}
               </AvatarFallback>
             </Avatar>
-            {pos === "contact" && isOnline && (
-              <div className="absolute bottom-1 z-10 w-3 h-3 rounded-full bg-green-500" />
-            )}
+            {pos === "contact" && <OnlineStatus reciver={user._id} />}
           </Link>
         )}
       </div>

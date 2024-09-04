@@ -4,7 +4,7 @@ import ReactTimeAgo from "react-time-ago";
 
 import type { TNotification } from "@typesFolder/notificationType";
 
-import { useDeleteNotificationByIdMutation } from "@features/api/notificationSlice";
+import { useDeleteNotificationByIdMutation } from "@features/api/notificationApiSlice";
 
 import {
   AlertDialog,
@@ -126,7 +126,10 @@ const Notification = ({ notification }: { notification: TNotification }) => {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>
+                    <AlertDialogCancel
+                      disabled={isLoading}
+                      onClick={() => setAlertDialogOpen(false)}
+                    >
                       Cancel
                     </AlertDialogCancel>
                     <AlertDialogAction

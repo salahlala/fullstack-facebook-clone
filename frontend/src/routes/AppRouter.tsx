@@ -9,6 +9,7 @@ import {
 import MainLayout from "@layouts/MainLayout";
 import ProtectLayout from "@layouts/ProtectLayout";
 import SettingLayout from "@layouts/SettingLayout";
+import MessengerLayout from "@layouts/MessengerLayout";
 
 import Main from "@pages/Main";
 import LoginPage from "@pages/LoginPage";
@@ -17,6 +18,8 @@ import SignupPage from "@pages/SignupPage";
 import SettingPage from "@pages/SettingPage";
 import ProfilePage from "@pages/ProfilePage";
 import PostPage from "@pages/PostPage";
+import SuggestedUserPage from "@pages/SuggestedUserPage";
+import MessengerPage from "@pages/MessengerPage";
 
 import ChangePassword from "@components/auth/ChangePassword";
 import ForgotPassword from "@components/auth/ForgotPassword";
@@ -108,6 +111,20 @@ const router = createBrowserRouter([
       {
         path: "profile/:id",
         element: <ProfilePage />,
+      },
+      {
+        path: "suggested-users",
+        element: <SuggestedUserPage />,
+      },
+      {
+        path: "messenger",
+        element: <MessengerLayout />,
+        children: [
+          {
+            path: ":chatId",
+            element: <MessengerPage />,
+          },
+        ],
       },
       {
         path: "setting",

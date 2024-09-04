@@ -1,4 +1,7 @@
-import { useGetMeQuery, useFollowUserMutation } from "@features/api/userSlice";
+import {
+  useGetMeQuery,
+  useFollowUserMutation,
+} from "@features/api/userApiSlice";
 import { Button } from "@components/ui/button";
 import { ImSpinner2 } from "react-icons/im";
 
@@ -15,7 +18,7 @@ const FollowButton = ({ id }: { id: string }) => {
     }
   };
   return (
-    <div className={`${userLogin?._id === id ? "hidden" : "block"}`}>
+    <div className={`${userLogin?._id === id ? "hidden" : "block"} `}>
       {checkFollowing ? (
         <Button
           className="button dark:bg-secondary flex gap-1 items-center  "

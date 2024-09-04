@@ -90,14 +90,21 @@ export const createPost = async (req, res) => {
         url: result.secure_url,
       };
     }
-
-    const post = await Post.create({
+    const post = new Post({
       user: userId,
       text,
       img,
     });
-    io.emit("create-post", { postId: post._id, userId });
-    res.status(201).json({ post });
+
+    await post.save();
+    // Query the post with population
+    const populatedPost = await Post.findById(post._id)
+      .populate("user", "username profileImg fullName bio followers")
+      .populate("likes", " username profileImg")
+      .populate("comments.user", "username profileImg");
+
+    io.emit("create-post", populatedPost);
+    res.status(201).json({ populatedPost });
   } catch (error) {
     console.log({ error: error }, "from create post");
     res.status(500).json({ error: "Internal Server Error" });
@@ -156,6 +163,12 @@ export const commentOnPost = async (req, res) => {
     };
     post.comments.push(comment);
     await post.save();
+    const postComments = await Post.findById(post._id)
+      .populate("comments.user", " profileImg bio followers fullName")
+      .select("comments");
+    const lastComment = postComments.comments[postComments.comments.length - 1];
+    io.emit("new-comment", { postId: id, comment: lastComment });
+
     if (post.user.toString() !== userId.toString()) {
       const notification = new Notification({
         from: userId,
@@ -168,9 +181,6 @@ export const commentOnPost = async (req, res) => {
       if (socketId) {
         io.to(socketId).emit("new-notification", notification);
       }
-
-      // const io = getIO();
-      io.emit("new-comment", { postId: id, userId });
     }
     res.status(200).json({ post });
   } catch (error) {
@@ -196,11 +206,14 @@ export const likeUnlikePost = async (req, res) => {
       type: "like",
       postId: id,
     });
+    const userData = await User.findById(userId).select(
+      "fullName profileImg bio followers"
+    );
     if (isLiked) {
       await Post.updateOne({ _id: id }, { $pull: { likes: userId } });
       await User.updateOne({ _id: userId }, { $pull: { likedPosts: id } });
 
-      io.emit("unlike-post", { postId: id, userId });
+      io.emit("unlike-post", { postId: id, user: userData });
       return res.status(200).json({ message: "unliked successfully" });
     } else {
       post.likes.push(userId);
@@ -225,7 +238,7 @@ export const likeUnlikePost = async (req, res) => {
       }
 
       // io.to(userId).emit("new-notification", { notification });
-      io.emit("like-post", { postId: id, userId });
+      io.emit("like-post", { postId: id, user: userData });
       return res.status(200).json({ message: "liked successfully" });
     }
   } catch (error) {
@@ -239,7 +252,7 @@ export const getAllPosts = async (req, res) => {
     const posts = await Post.find()
       .populate("user")
       .populate("comments.user")
-      .populate("likes", "_id username profileImg")
+      .populate("likes", "_id username fullName profileImg")
       .sort({ createdAt: -1 });
 
     res.status(200).json({ data: posts });
@@ -291,7 +304,8 @@ export const updatePost = async (req, res) => {
     }
 
     await post.save();
-    io.emit("update-post", { postId: id, userId });
+    const populatedPost = await Post.findById(id).populate("user");
+    io.emit("update-post", populatedPost);
     res.status(200).json({ post });
   } catch (error) {
     console.log({ error }, "from update post");
@@ -310,7 +324,7 @@ export const getLikedPosts = async (req, res) => {
       return res.status(400).json({ error: "user not found" });
     }
     const likedPosts = await Post.find({ _id: { $in: user.likedPosts } })
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName ")
       .populate("comments.user", "username profileImg");
     res.status(200).json({ likedPosts });
   } catch (error) {
@@ -331,7 +345,7 @@ export const getFollowingPosts = async (req, res) => {
       $or: [{ user: { $in: following } }, { user: userId }],
     })
       .sort({ createdAt: -1 })
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName bio followers")
       .populate("likes", " username profileImg")
       .populate("comments.user", "username profileImg");
     res.status(200).json({ data: posts });
@@ -349,9 +363,8 @@ export const getUserPosts = async (req, res) => {
     }
     const posts = await Post.find({ user: user._id })
       .sort({ createdAt: -1 })
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName bio followers")
       .populate("likes", "_id username profileImg")
-
       .populate("comments.user", "username profileImg");
 
     res.status(200).json({
@@ -371,7 +384,7 @@ export const getUserPostsWithId = async (req, res) => {
     const { userId } = req.params;
     const posts = await Post.find({ user: userId })
       .sort({ createdAt: -1 })
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName bio followers")
       .populate("likes", "_id username profileImg")
 
       .populate("comments.user", "username profileImg");
@@ -387,7 +400,7 @@ export const getMyPosts = async (req, res) => {
     const userId = req.user._id;
     const posts = await Post.find({ user: userId })
       .sort({ createdAt: -1 })
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName bio")
       .populate("likes", "_id username profileImg")
       .populate("comments.user", "username profileImg");
     res.status(200).json({ data: posts });
@@ -404,7 +417,7 @@ export const getPostById = async (req, res) => {
       return res.status(400).json({ error: "post id not found" });
     }
     const post = await Post.findById(postId)
-      .populate("user", "username profileImg")
+      .populate("user", "username profileImg fullName followers bio")
       .populate("likes", "_id username profileImg")
       .populate("comments.user", "username profileImg");
     if (!post) {
@@ -422,9 +435,9 @@ export const getLikedPostDetails = async (req, res) => {
   try {
     const { id: postId } = req.params;
     const post = await Post.findById(postId)
-      .populate("likes", "_id username profileImg following")
+      .populate("likes", " profileImg fullName followers bio")
       .select("likes");
-    res.status(200).json({ data: post });
+    res.status(200).json({ data: post.likes });
   } catch (error) {
     console.log(error, "from get likes post details");
     res.status(500).json({ error: "Internal Server Error" });
@@ -435,7 +448,7 @@ export const getPostComments = async (req, res) => {
   try {
     const { id: postId } = req.params;
     const post = await Post.findById(postId)
-      .populate("comments.user", "username profileImg")
+      .populate("comments.user", " profileImg fullName followers bio")
       .select("comments");
     res.status(200).json({ data: post.comments });
   } catch (error) {
@@ -475,7 +488,7 @@ export const deleteComment = async (req, res) => {
     await post.save();
     // const io = getIO();
 
-    io.emit("delete-comment", { postId });
+    io.emit("delete-comment", { postId, commentId });
 
     res.status(200).json({ message: "Comment deleted successfully" });
   } catch (error) {

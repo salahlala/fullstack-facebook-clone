@@ -1,8 +1,13 @@
 import { useEffect } from "react";
-import { useGetFollowingPostsQuery } from "@features/api/postSlice";
-import { useGetMeQuery } from "@features/api/userSlice";
-import { useGetNotificationsQuery } from "@features/api/notificationSlice";
-import { useAppSelector } from "@store/hooks";
+import { useGetFollowingPostsQuery } from "@features/api/postApiSlice";
+import { useGetMeQuery } from "@features/api/userApiSlice";
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+
+import {
+  updatePostDeleteCache,
+  updatePostUpdateCache,
+  updateNewPostCache,
+} from "@utils/postsCache";
 import type { TPost } from "@typesFolder/postType";
 import type { TUser } from "@typesFolder/authType";
 
@@ -17,6 +22,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@components/ui/carousel";
+
 import {
   IoMdSettings,
   IoMdSearch,
@@ -28,37 +34,40 @@ import { MdGroups2 } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
 import { BsThreeDots } from "react-icons/bs";
 const HomePage = () => {
-  const {
-    data: posts,
-    isLoading,
-    refetch: refetchPosts,
-  } = useGetFollowingPostsQuery();
-
-  const { refetch: refetchNotifications } = useGetNotificationsQuery();
+  const { data: posts, isLoading } = useGetFollowingPostsQuery();
 
   // const { data: posts, isLoading, isError, error } = useGetPostsQuery();
 
   const { data: user } = useGetMeQuery();
 
   const { socket } = useAppSelector((state) => state.socket);
-
+  const dispatch = useAppDispatch();
   useEffect(() => {
-    const handleRefetchPosts = () => {
-      refetchPosts();
+    if (!socket) return;
+
+    const handleDeletePost = (data: { postId: string }) => {
+      console.log("post deleted");
+      updatePostDeleteCache(dispatch, data.postId);
+    };
+    const handleUpdatePost = (updatedPost: TPost) => {
+      console.log("post updated");
+      updatePostUpdateCache(dispatch, updatedPost);
+    };
+    const handleCreatePost = (newPost: TPost) => {
+      console.log("post created");
+      updateNewPostCache(dispatch, newPost);
     };
 
-    const events = ["create-post", "update-post", "delete-post"];
-
-    events.forEach((event) => {
-      socket?.on(event, handleRefetchPosts);
-    });
+    socket.on("delete-post", handleDeletePost);
+    socket.on("update-post", handleUpdatePost);
+    socket.on("create-post", handleCreatePost);
 
     return () => {
-      events.forEach((event) => {
-        socket?.off(event, handleRefetchPosts);
-      });
+      socket.off("delete-post", handleDeletePost);
+      socket.off("update-post", handleUpdatePost);
+      socket.off("create-post", handleCreatePost);
     };
-  }, [socket, refetchPosts, refetchNotifications]);
+  }, [socket, dispatch]);
 
   return (
     <div className="min-h-screen relative bg-background">
