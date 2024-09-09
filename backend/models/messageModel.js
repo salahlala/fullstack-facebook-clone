@@ -30,6 +30,8 @@ const messageSchema = new Schema(
   { timestamps: true }
 );
 
+// Index for fast updates of unseen messages
+messageSchema.index({ chat: 1, sender: 1, seen: 1, status: 1 });
 const Message = mongoose.models.Message || model("Message", messageSchema);
 
 export default Message;

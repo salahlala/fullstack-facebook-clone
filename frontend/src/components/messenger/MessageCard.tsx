@@ -38,16 +38,16 @@ import { ImSpinner2 } from "react-icons/im";
 
 interface IMessageCardProps {
   message: TMessage;
-  reciver: {
-    _id: string;
-    fullName: string;
-    profileImg: {
-      public_id: string;
-      url: string;
-    };
-  };
+  // reciver: {
+  //   _id: string;
+  //   fullName: string;
+  //   profileImg: {
+  //     public_id: string;
+  //     url: string;
+  //   };
+  // };
 }
-const MessageCard = ({ message, reciver }: IMessageCardProps) => {
+const MessageCard = ({ message }: IMessageCardProps) => {
   const { user } = useAppSelector((state) => state.auth);
   const [deleteMessage, { isLoading: isDeleting }] = useDeleteMessageMutation();
   const own = message.sender._id === user._id;
@@ -64,7 +64,7 @@ const MessageCard = ({ message, reciver }: IMessageCardProps) => {
       console.log({ message });
       await deleteMessage({
         messageId: message._id,
-        chatId: message.chat,
+        chatId: message.chat._id,
       }).unwrap();
     } catch (error) {
       console.log(error);
@@ -97,23 +97,6 @@ const MessageCard = ({ message, reciver }: IMessageCardProps) => {
 
           <PopoverContent>
             <div className="flex flex-col gap-3">
-              {/* <div
-                onClick={() => handleEditClick(post)}
-                className={`${
-                  isLoading && "pointer-events-none"
-                } flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
-              >
-                <MdEdit className="" />
-                <p>Edit</p>
-              </div> */}
-
-              {/* {isLoading && (
-                  <Button disabled>
-                    <ImSpinner2 className="mr-2 w-4 animate-spin" />
-                    please wait
-                  </Button>
-                )} */}
-
               <AlertDialog open={alertDialogOpen}>
                 <AlertDialogTrigger onClick={() => setAlertDialogOpen(true)}>
                   <div
@@ -162,7 +145,7 @@ const MessageCard = ({ message, reciver }: IMessageCardProps) => {
       )}
       {!own && (
         <img
-          src={reciver?.profileImg.url}
+          src={message.sender.profileImg?.url}
           alt="img"
           className="w-[40px] rounded-full"
         />
@@ -199,13 +182,6 @@ const MessageCard = ({ message, reciver }: IMessageCardProps) => {
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
-
-        {/* <ReactTimeAgo
-          className={`${
-            own ? "text-white/50" : "text-gray-600"
-          } dark:text-white/50 text-sm`}
-          date={new Date(message.createdAt)}
-        /> */}
       </div>
     </div>
   );

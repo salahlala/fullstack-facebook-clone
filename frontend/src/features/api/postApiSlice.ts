@@ -2,8 +2,8 @@ import { apiSlice } from "@features/api/apiSlice";
 import type { TPost, TComment } from "@typesFolder/postType";
 import type { TUser } from "@typesFolder/authType";
 import { ApiError } from "@typesFolder/apiError";
-import { store } from "@store/index";
 
+import { store } from "@store/index";
 export const postSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPosts: builder.query<TPost[], void>({
@@ -37,9 +37,7 @@ export const postSlice = apiSlice.injectEndpoints({
         };
       },
       providesTags: (result) =>
-        result
-          ? [{ type: "Post" as const, id: result._id }]
-          : [{ type: "Post", id: "LIST" }],
+        result ? [{ type: "Post" as const, id: result._id }] : [],
     }),
     getMyPosts: builder.query<TPost[], void>({
       query: () => "/posts/me",
@@ -184,10 +182,10 @@ export const postSlice = apiSlice.injectEndpoints({
           message: err.data.message || "some error",
         };
       },
-      // invalidatesTags: (_, __, formData) => {
-      //   const postId = formData.get("postId") as string;
-      //   return [{ type: "Post" as const, id: postId }];
-      // },
+      invalidatesTags: (_, __, formData) => {
+        const postId = formData.get("postId") as string;
+        return [{ type: "Post" as const, id: postId }];
+      },
     }),
     deleteComment: builder.mutation({
       query: ({ postId, commentId }) => ({

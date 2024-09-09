@@ -198,26 +198,41 @@ export const forgotPassword = async (req, res, next) => {
 
 export const resetPassword = async (req, res, next) => {
   const { password, passwordConfirm } = req.body;
-  const hashedToken = crypto
-    .createHash("sha256")
-    .update(req.params.token)
-    .digest("hex");
-  const user = await User.findOne({
-    passwordResetToken: hashedToken,
-    passwordResetExpires: { $gt: Date.now() },
-  });
-  if (!user) {
-    return res.status(400).json({ message: "Token is invalid or has expired" });
+
+  if (!password || !passwordConfirm) {
+    return res
+      .status(400)
+      .json({ message: "Please provide password and confirm password" });
   }
-  user.password = password;
-  user.passwordConfirm = passwordConfirm;
-  user.passwordResetToken = undefined;
-  user.passwordResetExpires = undefined;
-  await user.save({ validateBeforeSave: true });
-  user.password = undefined;
-  user.passwordConfirm = undefined;
-  const accessToken = generateTokenAndSetCookie(user._id, res);
-  res.status(200).json({ token: accessToken, user });
+  if (password !== passwordConfirm) {
+    return res.status(400).json({ message: "Password does not match" });
+  }
+  try {
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(req.params.token)
+      .digest("hex");
+    const user = await User.findOne({
+      passwordResetToken: hashedToken,
+      passwordResetExpires: { $gt: Date.now() },
+    });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ message: "Token is invalid or has expired" });
+    }
+    user.password = password;
+    user.passwordConfirm = passwordConfirm;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    await user.save({ validateBeforeSave: true });
+    user.password = undefined;
+    user.passwordConfirm = undefined;
+    const accessToken = generateTokenAndSetCookie(user._id, res);
+    res.status(200).json({ token: accessToken, user });
+  } catch (error) {
+    return next(error);
+  }
 };
 
 // export const checkUserLogin = async (req, res, next) => {

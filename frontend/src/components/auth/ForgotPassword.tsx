@@ -42,14 +42,13 @@ const ForgotPassword = () => {
             <p className="text-red-500">{(error as ApiError)?.message}</p>
           )}
           <div className="flex gap-3">
-            <Button className="dark:bg-secondary button">
-              <Link to="/">Back to login</Link>
-            </Button>
-            <Button
-              type="submit"
-              className="dark:bg-background button"
-              disabled={isLoading}
-            >
+            <Link to="/">
+              <Button className=" button" type="button">
+                Back to login
+              </Button>
+            </Link>
+
+            <Button type="submit" className="button" disabled={isLoading}>
               Submit
             </Button>
           </div>

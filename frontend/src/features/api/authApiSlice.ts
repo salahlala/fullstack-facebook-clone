@@ -70,28 +70,13 @@ export const authSlice = apiSlice.injectEndpoints({
         body: { password, passwordConfirm },
       }),
       transformResponse: (response: ResetResponse) => response,
+      transformErrorResponse(response: { status: number; data: ApiError }) {
+        return {
+          status: response.status,
+          message: response.data?.message || "Something went wrong",
+        };
+      },
     }),
-    // getMe: builder.query<TUser, void>({
-    //   query: () => "/auth/me",
-    //   keepUnusedDataFor: 30,
-
-    //   transformErrorResponse(response: { status: number; data: ApiError }) {
-    //     return {
-    //       status: response.status,
-    //       message: response.data?.message || "Something went wrong",
-    //     };
-    //   },
-    //   providesTags: [{ type: "User", id: "CURRENT_USER" }],
-    // }),
-    // getUserProfile: builder.query<TUser, string>({
-    //   query: (username) => ({
-    //     url: `/users/profile/${username}`,
-    //     method: "GET",
-    //   }),
-    //   transformResponse: (response: { data: TUser }) => response.data,
-    //   providesTags: (result) =>
-    //     result ? [{ type: "User", id: result._id }] : [],
-    // }),
   }),
 });
 

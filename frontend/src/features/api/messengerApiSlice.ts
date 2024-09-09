@@ -1,5 +1,4 @@
 import { apiSlice } from "@features/api/apiSlice";
-import { updateDeleteMessageCache } from "@utils/cacheUtils";
 import type { TChat, TMessage } from "@typesFolder/messengerType";
 export const messengerSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -45,7 +44,7 @@ export const messengerSlice = apiSlice.injectEndpoints({
     }),
     sendMessage: builder.mutation<
       TMessage,
-      { content: string; chatId: string; senderId: string }
+      { content: string; chatId: string }
     >({
       query: (data) => ({
         url: "/messages",
@@ -55,14 +54,8 @@ export const messengerSlice = apiSlice.injectEndpoints({
       transformResponse: (response: { data: TMessage }) => response.data,
       invalidatesTags: (result, __, { chatId }) =>
         result
-          ? [
-              { type: "Chat" as const, id: chatId },
-              { type: "Message" as const, id: result._id },
-            ]
-          : [
-              { type: "Chat" as const, id: chatId },
-              // { type: "Message" as const, id: chatId },
-            ],
+          ? [{ type: "Message" as const, id: result._id }]
+          : [{ type: "Chat" as const, id: chatId }],
     }),
     deleteMessage: builder.mutation<
       TMessage,
@@ -72,42 +65,33 @@ export const messengerSlice = apiSlice.injectEndpoints({
         url: `/messages/${chatId}/${messageId}`,
         method: "DELETE",
       }),
-      invalidatesTags: (_, __, { messageId, chatId }) => [
-        { type: "Chat" as const, id: chatId },
-      ],
 
-      async onQueryStarted(
-        { messageId, chatId },
-        { dispatch, queryFulfilled }
-      ) {
-        const patchResult = updateDeleteMessageCache(
-          dispatch,
-          chatId,
-          messageId
-        );
-        try {
-          await queryFulfilled;
-        } catch (error) {
-          patchResult.undo();
-          console.error("Error deleting message:", error);
-        }
-      },
+      // async onQueryStarted(
+      //   { messageId, chatId },
+      //   { dispatch, queryFulfilled }
+      // ) {
+      //   const patchResult = updateDeleteMessageCache(
+      //     dispatch,
+      //     chatId,
+      //     messageId
+      //   );
+      //   try {
+      //     await queryFulfilled;
+      //   } catch (error) {
+      //     patchResult.undo();
+      //     console.error("Error deleting message:", error);
+      //   }
+      // },
     }),
-    createChat: builder.mutation<TChat, { firstId: string; secondId: string }>({
+    createChat: builder.mutation<TChat, { userId: string }>({
       query: (data) => ({
         url: "/chats",
         method: "POST",
         body: data,
       }),
       transformResponse: (response: { data: TChat }) => response.data,
-      invalidatesTags: (result) => {
-        if (result)
-          return [
-            { type: "Chat" as const, id: result._id },
-            // { type: "Chats" as const, id: "LIST" },
-          ];
-        return [{ type: "Chats" as const, id: "LIST" }];
-      },
+      // invalidatesTags: (result) =>
+      //   result ? [{ type: "Chat" as const, id: result._id }] : [],
     }),
     getChats: builder.query<TChat[], void>({
       query: () => ({
@@ -117,13 +101,10 @@ export const messengerSlice = apiSlice.injectEndpoints({
       transformResponse: (response: { data: TChat[] }) => {
         return response.data;
       },
-      providesTags: (result) =>
-        result
-          ? [
-              { type: "Chats" as const, id: "LIST" },
-              ...result.map(({ _id }) => ({ type: "Chat" as const, id: _id })),
-            ]
-          : [{ type: "Chats" as const, id: "LIST" }],
+      // providesTags: (result) =>
+      //   result
+      //     ? [...result.map(({ _id }) => ({ type: "Chat" as const, id: _id }))]
+      //     : [{ type: "Chats" as const, id: "LIST" }],
     }),
     getChatById: builder.query<TChat, string>({
       query: (chatId: string) => ({
@@ -132,6 +113,33 @@ export const messengerSlice = apiSlice.injectEndpoints({
       transformResponse: (response: { data: TChat }) => response.data,
       providesTags: (_, __, chatId) => [{ type: "Chat" as const, id: chatId }],
     }),
+    deleteChat: builder.mutation<void, string>({
+      query: (chatId: string) => ({
+        url: `/chats/${chatId}`,
+        method: "DELETE",
+      }),
+      async onQueryStarted(chatId, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          messengerSlice.util.updateQueryData(
+            "getChats",
+            undefined,
+            (chats) => {
+              return chats.filter((chat) => chat._id.toString() !== chatId);
+            }
+          )
+        );
+        try {
+          await queryFulfilled;
+        } catch (error) {
+          patchResult.undo();
+          console.error("Error deleting chat:", error);
+        }
+      },
+
+      // invalidatesTags: (_, __, chatId) => [
+      //   { type: "Chat" as const, id: chatId },
+      // ],
+    }),
   }),
 });
 
@@ -139,10 +147,13 @@ export const {
   useGetMessagesQuery,
   useLazyGetMessagesQuery,
   useGetMessagesNotSeenQuery,
+  useLazyGetMessagesNotSeenQuery,
   useDeleteMessageMutation,
 
   useGetChatsQuery,
   useGetChatByIdQuery,
+  useLazyGetChatByIdQuery,
   useSendMessageMutation,
   useCreateChatMutation,
+  useDeleteChatMutation,
 } = messengerSlice;

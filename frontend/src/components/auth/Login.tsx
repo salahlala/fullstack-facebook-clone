@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useLoginMutation } from "@features/api/authApiSlice";
 import { useAppDispatch } from "@store/hooks";
 import { login as loginAction } from "@store/authSlice";
 
 import type { ApiError } from "@typesFolder/apiError";
-
-import useSignIn from "react-auth-kit/hooks/useSignIn";
 
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
@@ -18,9 +16,7 @@ const Login = () => {
   // const signIn = useSignIn();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const from = location.state?.from?.pathname || "/app";
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === "email") {
       setFormData({ ...formData, email: e.target.value });
@@ -58,7 +54,7 @@ const Login = () => {
   };
   // console.log(error, "error from out");
   return (
-    <div className="w-[340px] min-h-[320px] lg:w-[400px] lg:h-[350px] rounded-md p-4 shadow-xl bg-card">
+    <div className="w-[340px] min-h-[320px] lg:w-[400px] lg:min-h-[350px] rounded-md p-4 shadow-xl bg-card">
       <form onSubmit={handleSubmit} className="flex  flex-col gap-3">
         <Label htmlFor="email" className="text-foregronud">
           Email
@@ -87,16 +83,16 @@ const Login = () => {
         )}
         <Button
           type="submit"
-          className="w-full bg-primary text-background hover:bg-secondary hover:text-foreground transition-colors duration-200"
+          className="w-full button transition-colors duration-200"
           disabled={isLoading}
         >
           Login
         </Button>
         <Link to="/forgotPassword" className="mt-3">
-          <p className="text-center text-primary">Forgot Password</p>
+          <p className="text-center ">Forgot Password</p>
         </Link>
         <Link to="/signup" className="mt-3">
-          <p className="text-center text-primary">Create new account</p>
+          <p className="text-center ">Create new account</p>
         </Link>
       </form>
     </div>

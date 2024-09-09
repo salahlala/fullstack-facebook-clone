@@ -140,7 +140,7 @@ const Header = () => {
         >
           <DialogTitle className="text-center">Search</DialogTitle>
           <Input
-            placeholder="search"
+            placeholder="Search for users"
             className="w-full text-secondary-foreground bg-card mt-4"
             onChange={(e) => setName(e.target.value)}
           />
@@ -184,7 +184,7 @@ const Header = () => {
               <div
                 className={`${isAnimated ? "animate-bounce" : ""} ${
                   !notifications?.length ? "hidden" : ""
-                } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-500 rounded-full top-0 right-0`}
+                } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-800 rounded-full top-0 right-0`}
               >
                 {notifications?.length}
               </div>

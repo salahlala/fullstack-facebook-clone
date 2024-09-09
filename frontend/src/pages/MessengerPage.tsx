@@ -1,11 +1,8 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { Link } from "react-router-dom";
-import { apiSlice } from "@features/api/apiSlice";
-import {
-  useGetChatByIdQuery,
-  useGetChatsQuery,
-} from "@features/api/messengerApiSlice";
+
+import { useGetChatByIdQuery } from "@features/api/messengerApiSlice";
 
 import MessageCard from "@components/messenger/MessageCard";
 import OnlineStatus from "@components/messenger/OnlineStatus";
@@ -23,38 +20,42 @@ import {
 
 import { ImSpinner2 } from "react-icons/im";
 import { IoMdClose } from "react-icons/io";
+import { IoMdSend } from "react-icons/io";
 import {
   updateMessagesStatusCache,
   updateUnseenMessagesCache,
   updateNewMessagesCache,
+  updateLastMessageCache,
 } from "@utils/cacheUtils";
 const MessengerPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   // console.log({ chatId });
-  const {
-    data: messages,
-    isLoading: messagesLoading,
-    refetch: refetchMessages,
-  } = useGetMessagesQuery(chatId!, {
-    refetchOnMountOrArgChange: true,
-  });
-  const {
-    data: chat,
-    isLoading: chatLoading,
-    refetch: refetchChat,
-  } = useGetChatByIdQuery(chatId!, {
+  const { data: messages, isLoading: messagesLoading } = useGetMessagesQuery(
+    chatId!,
+    {
+      refetchOnMountOrArgChange: true,
+    }
+  );
+  const { data: chat, isLoading: chatLoading } = useGetChatByIdQuery(chatId!, {
     refetchOnMountOrArgChange: true,
   });
 
-  const [sendMessage] = useSendMessageMutation();
+  const [sendMessage, { isLoading: sendMessageLoading }] =
+    useSendMessageMutation();
   const [messageContent, setMessageContent] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { socket, onlineUsers } = useAppSelector((state) => state.socket);
-  const reciver = chat?.members.filter((member) => member._id !== user._id)[0];
 
+  const receiver = chat?.members.filter(
+    (member) => member._id?.toString() !== user._id
+  )[0];
+
+  // set message in the redux store
+
+  // console.log({ user, receiver });
   // console.log(chat);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessageContent(e.target.value);
@@ -62,176 +63,140 @@ const MessengerPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (messageContent.trim().length === 0) return;
-    const data = await sendMessage({
-      content: messageContent,
-      chatId: chatId!,
-      senderId: user._id,
-    }).unwrap();
-    setMessageContent("");
-    updateNewMessagesCache(dispatch, chatId!, data);
-    // dispatch(
-    //   apiSlice.util.updateQueryData(
-    //     "getMessages",
-    //     chatId,
-    //     (draft: TMessage[]) => {
-    //       draft.push(data);
-    //     }
-    //   )
-    // );
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+
+    try {
+      const data = await sendMessage({
+        content: messageContent,
+        chatId: chatId!,
+      }).unwrap();
+      setMessageContent("");
+
+      socket?.emit("send-message", {
+        ...data,
+        receiver: receiver?._id,
+      });
+      // console.log({ data });
+      updateLastMessageCache(dispatch, data);
+      updateNewMessagesCache(dispatch, chatId!, data);
+      // updateChatsCache(dispatch, data.chat);
+
+      // scroll to the latest message
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    } catch (error) {
+      console.log("error", error);
+    }
   };
 
   useEffect(() => {
     if (!socket || !chat?._id) return;
 
     const handleNewMessage = (data: TMessage) => {
-      if (data.chat === chat?._id) {
-        // console.log("new message", data);
+      if (data.chat.toString() === chat?._id) {
+        console.log("new message", { data });
         // Update cache directly with the new message
-        updateNewMessagesCache(dispatch, chatId!, data);
-        // dispatch(
-        //   apiSlice.util.updateQueryData(
-        //     "getMessages",
-        //     chatId,
-        //     (draft: TMessage[]) => {
-        //       draft.push(data);
-        //     }
-        //   )
-        // );
-
-        // dispatch(
-        //   apiSlice.util.invalidateTags([
-        //     { type: "Message" as const, id: data._id },
-        //   ])
-        // );
-        // refetchMessages();
-        // refetchAllChats();
+        updateNewMessagesCache(dispatch, data.chat.toString(), data);
+        updateLastMessageCache(dispatch, data);
       }
     };
 
+    const handleMessageRead = (data: {
+      chatId: string;
+      messagesToUpdate: TMessage[];
+    }) => {
+      const { chatId: updatedChat, messagesToUpdate } = data;
+      if (updatedChat == chat?._id) {
+        setTimeout(() => {
+          if (dispatch && chat) {
+            console.log("is ready");
+            updateMessagesStatusCache(dispatch, updatedChat, messagesToUpdate);
+          }
+        }, 180);
+      }
+    };
+    const handleMessageDelivered = ({
+      chatId,
+      messagesToUpdate,
+    }: {
+      chatId: string;
+      messagesToUpdate: TMessage[];
+    }) => {
+      console.log({ chatId, chat }, "from message delivered");
+      if (chatId == chat?._id) {
+        console.log("message is delivered and will update");
+
+        updateMessagesStatusCache(dispatch, chatId, messagesToUpdate);
+      }
+    };
     socket.on("new-message", handleNewMessage);
+
+    socket.on("readMessage", handleMessageRead);
+    socket.on("messageDelivered", handleMessageDelivered);
     // socket.on("message-sent", handleMessageSent);
     return () => {
       socket.off("new-message", handleNewMessage);
+      socket.off("readMessage", handleMessageRead);
+      socket.off("messageDelivered", handleMessageDelivered);
       // socket.off("message-sent", handleMessageSent);
     };
     // scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [socket, chat, dispatch, chatId]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 200);
-    return () => clearTimeout(timer);
-  }, [messages, chatId]);
+    // scroll when loading message is done
+    if (!messagesLoading) {
+      const timer = setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [messages, chatId, messagesLoading]);
 
   useEffect(() => {
-    if (messages?.length && reciver) {
+    if (!messagesLoading) {
+      console.log("unseen cache updated");
+
+      updateUnseenMessagesCache(dispatch, chatId!);
+    }
+  }, [messagesLoading, dispatch, chatId]);
+
+  useEffect(() => {
+    // send event that message is read
+    if (messages?.length && receiver && chatId && user) {
       const lastMessage = messages[messages.length - 1];
-      if (lastMessage?.sender?._id !== user?._id) {
-        socket?.emit("messageRead", { chatId, user: reciver._id });
-        if (chatId) {
+
+      if (lastMessage?.sender?._id?.toString() !== user._id.toString()) {
+        if (socket) {
+          socket.emit("messageRead", { chatId, receiver: receiver._id });
+
+          // Update unseen messages cache
+          console.log("message is read and update unseen cache");
           updateUnseenMessagesCache(dispatch, chatId);
         }
-        // dispatch(
-        //   apiSlice.util.invalidateTags([
-        //     { type: "Message", id: `UNSEEN-${chatId}` },
-        //   ])
-        // );
       }
     }
-  }, [chatId, messages, socket, user, reciver, dispatch]);
 
-  const handleMessageRead = useCallback(
-    (data: { chatId: string; messagesToUpdate: TMessage[] }) => {
-      const { chatId: updatedChat, messagesToUpdate } = data;
-      if (updatedChat == chat?._id) {
-        // Update cache directly with the new message
-        updateMessagesStatusCache(dispatch, updatedChat, messagesToUpdate);
-        // dispatch(
-        //   apiSlice.util.updateQueryData(
-        //     "getMessages",
-        //     chatId,
-        //     (draft: TMessage[]) => {
-        //       // Replace the old messages with the updated ones
-        //       messagesToUpdate.forEach((updatedMessage) => {
-        //         const index = draft.findIndex(
-        //           (msg) => msg._id === updatedMessage._id
-        //         );
-        //         if (index !== -1) {
-        //           draft[index] = { ...draft[index], ...updatedMessage }; // Replace the old message with the updated one
-        //         }
-        //       });
-        //     }
-        //   )
-        // );
-      }
-    },
-    [dispatch, chat]
-  );
-
-  useEffect(() => {
-    if (!socket || !chat) return;
-
-    socket.on("readMessage", handleMessageRead);
-    return () => {
-      socket.off("readMessage", handleMessageRead);
-    };
-  }, [socket, chat, handleMessageRead]);
-
-  useEffect(() => {
-    if (!socket || !chat || !reciver) return;
-    if (reciver) {
+    // Send user status event when receiver is online
+    if (receiver) {
       const filteredMessage = messages?.filter(
         (message) => message.status == "sent"
       );
-      const isReciverOnline = onlineUsers.includes(reciver._id);
+      const isReciverOnline = onlineUsers.includes(receiver._id);
 
       if (filteredMessage?.length && isReciverOnline) {
-        console.log("user is online from messenger page", reciver);
-        socket.emit("user-status", {
-          reciverId: reciver._id,
-          status: "online",
-          senderId: user._id,
-          messages: filteredMessage,
-          chatId: chat?._id,
-        });
+        console.log("user is online and send event");
+        // console.log("user is online from messenger page", receiver);
+        if (socket) {
+          socket.emit("user-status", {
+            reciverId: receiver._id,
+            senderId: user._id,
+            messages: filteredMessage,
+            chatId,
+          });
+        }
       }
     }
-    return () => {
-      socket.off("user-status");
-    };
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [socket, onlineUsers, reciver, user, chat]);
-
-  useEffect(() => {
-    socket?.on("messageDelivered", ({ chatId, messagesToUpdate }) => {
-      if (chatId == chat?._id) {
-        console.log(messagesToUpdate);
-        console.log("message delivered");
-        updateMessagesStatusCache(dispatch, chatId, messagesToUpdate);
-        // dispatch(
-        //   apiSlice.util.updateQueryData(
-        //     "getMessages",
-        //     chatId,
-        //     (draft: TMessage[]) => {
-        //       // Replace the old messages with the updated ones
-        //       messagesToUpdate.forEach((updatedMessage: TMessage) => {
-        //         const index = draft.findIndex(
-        //           (msg) => msg._id === updatedMessage._id
-        //         );
-        //         if (index !== -1) {
-        //           draft[index] = { ...draft[index], ...updatedMessage }; // Replace the old message with the updated one
-        //         }
-        //       });
-        //     }
-        //   )
-        // );
-        // refetchMessages();
-      }
-    });
-  }, [socket, chat, dispatch]);
+  }, [chatId, messages, socket, user, receiver, dispatch, onlineUsers]);
 
   return (
     // <div className="flex min-h-screen gap-1 pt-[70px]">
@@ -246,13 +211,13 @@ const MessengerPage = () => {
             <>
               <div className="relative flex items-center gap-2 ">
                 <Avatar>
-                  <AvatarImage src={reciver?.profileImg.url} />
+                  <AvatarImage src={receiver?.profileImg.url} />
                   <AvatarFallback>
-                    {reciver?.fullName[0].toUpperCase()}
+                    {receiver?.fullName[0].toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <h1 className="text-2xl capitalize">{reciver?.fullName}</h1>
-                {reciver && <OnlineStatus reciver={reciver?._id} />}
+                <h1 className="text-2xl capitalize">{receiver?.fullName}</h1>
+                {receiver && <OnlineStatus reciver={receiver?._id} />}
               </div>
               <Link
                 to="/app/messenger"
@@ -277,7 +242,7 @@ const MessengerPage = () => {
           <>
             {messages?.map((message: TMessage) => (
               <div ref={scrollRef} key={message._id}>
-                <MessageCard message={message} reciver={reciver!} />
+                <MessageCard message={message} />
               </div>
             ))}
           </>
@@ -290,12 +255,19 @@ const MessengerPage = () => {
             placeholder="write a message"
             value={messageContent}
             onChange={handleInputChange}
+            autoFocus
           />
+
           <Button
             type="submit"
-            className="button !mt-0 !w-auto dark:bg-background hover:!bg-card "
+            className="button !mt-0 !w-auto "
+            disabled={sendMessageLoading || messageContent.trim().length < 1}
           >
-            send
+            {sendMessageLoading ? (
+              <ImSpinner2 className="animate-spin" />
+            ) : (
+              <IoMdSend className="text-2xl" />
+            )}
           </Button>
         </form>
       </div>

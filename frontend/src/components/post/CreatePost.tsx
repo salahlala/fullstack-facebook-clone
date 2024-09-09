@@ -8,9 +8,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 const CreatePost = ({ id }: { id?: string }) => {
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();
-  const { data: userLogin } = useGetMeQuery();
   const { isDialogOpen, type } = useAppSelector((state) => state.ui);
-
+  const { data: userLogin } = useGetMeQuery();
   const isMyProfile = userLogin?._id === id;
   const handleOpenDialog = () => {
     dispatch(openDialog("create"));

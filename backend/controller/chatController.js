@@ -1,22 +1,32 @@
 import Chat from "../models/chatModel.js";
 
 export const createChat = async (req, res) => {
-  const { firstId, secondId } = req.body;
+  const { userId } = req.body;
+  const currentUser = req.user._id.toString();
+
+  console.log({ userId, currentUser }, "create chat");
   try {
-    if (!firstId || !secondId) {
-      throw new Error("Please provide senderId and receiverId");
+    if (!userId) {
+      throw new Error("Please provide userId");
     }
-    if (firstId === secondId) {
+    if (currentUser === userId) {
       throw new Error("Can't send message to yourself");
     }
-    const existChat = await Chat.findOne({
-      members: { $all: [firstId, secondId] },
-    });
-    if (existChat) {
-      return res.status(200).json({ data: existChat });
+    const existingChat = await Chat.findOne({
+      members: { $all: [currentUser, userId] },
+    })
+      .populate("members", "profileImg fullName")
+      .populate("lastMessage")
+      .lean();
+    if (existingChat) {
+      return res.status(200).json({ data: existingChat });
     }
-    const chat = await Chat.create({ members: [firstId, secondId] });
-    return res.status(200).json({ data: chat });
+
+    const chat = await Chat.create({ members: [currentUser, userId] });
+
+    await chat.populate("members", "profileImg fullName");
+
+    return res.status(201).json({ data: chat });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: error.message });
@@ -33,9 +43,9 @@ export const getChats = async (req, res) => {
       .populate("lastMessage")
       .sort({ updatedAt: -1 });
 
-    if (!chat.length) {
-      throw new Error("Chat not found");
-    }
+    // if (!chat.length) {
+    //   res.status(200).json({ data: [] });
+    // }
     res.status(200).json({ data: chat });
   } catch (error) {
     console.log(error.message, "getChats");
@@ -73,6 +83,27 @@ export const getChatById = async (req, res) => {
       throw new Error("No chat found with that ID");
     }
     res.status(200).json({ data: chat });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const deleteChat = async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
+  try {
+    // check if use is the owner of the chat
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      throw new Error("No chat found with that ID");
+    }
+    if (!chat.members.includes(userId)) {
+      throw new Error("You are not authorized to delete this chat");
+    }
+    await Chat.findByIdAndDelete(chatId);
+
+    res.status(200).json({ message: "Chat deleted successfully" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: error.message });

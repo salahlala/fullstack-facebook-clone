@@ -208,7 +208,11 @@ const Post = ({ post, styles }: postProps) => {
     }
   }, [post, inView, getPostComments, getLikedPostDetails, fetchedComments]);
 
+  // console.log({ data, post }, "post");
   // const handleUpdatePost = async()=>{}
+
+  const likedPostsSet = new Set(data?.likedPosts?.map((id) => id.toString()));
+  const isPostLiked = likedPostsSet.has(post._id.toString());
   return (
     <div className={`${styles} shadow-lg rounded-xl p-6 bg-card`} ref={ref}>
       <PostHeader
@@ -238,16 +242,8 @@ const Post = ({ post, styles }: postProps) => {
           className="flex items-center  gap-2 transition duration-75 hover:bg-black/10 dark:hover:bg-white/10 rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer"
           onClick={handleAddLike}
         >
-          <AiFillLike
-            className={`${
-              data?.likedPosts?.includes(post._id) && "fill-blue-500"
-            } h-5`}
-          />
-          <p
-            className={`${
-              data?.likedPosts?.includes(post._id) && "text-blue-500"
-            } h-5`}
-          >
+          <AiFillLike className={`${isPostLiked && "fill-blue-800"} h-5`} />
+          <p className={`${isPostLiked && "text-blue-800 font-semibold"} h-5`}>
             like
           </p>
         </div>

@@ -86,14 +86,11 @@ const SignupPage = () => {
               {(error as ApiError)?.data?.message}
             </p>
           )}
-          <Button
-            className="bg-primary text-background hover:bg-secondary hover:text-foreground transition-colors duration-200"
-            disabled={isLoading}
-          >
+          <Button className="button " disabled={isLoading}>
             Signup
           </Button>
           <Link to="/login" className="mt-3">
-            <p className="text-center text-primary">Already have an account?</p>
+            <p className="text-center ">Already have an account?</p>
           </Link>
         </form>
       </div>

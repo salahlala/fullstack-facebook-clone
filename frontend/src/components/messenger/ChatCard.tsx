@@ -2,38 +2,53 @@ import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import OnlineStatus from "@components/messenger/OnlineStatus";
 import defaultImg from "@assets/default-profile.png";
 import type { TChat } from "@typesFolder/messengerType";
-import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { useAppSelector } from "@store/hooks";
 import { useGetMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
 
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
+import { useInView } from "react-intersection-observer";
+
 interface IChatCardProps {
   chat: TChat;
 }
 
 const ChatCard = ({ chat }: IChatCardProps) => {
+  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.1 });
+  const { data: messagesUnseen } = useGetMessagesNotSeenQuery(chat._id, {
+    skip: !inView,
+  });
   const { user } = useAppSelector((state) => state.auth);
-  const { data, refetch } = useGetMessagesNotSeenQuery(chat._id);
+  // const [getMessages, { data: messagesUnseen }] =
+  //   useLazyGetMessagesNotSeenQuery();
   const navigate = useNavigate();
+  // const { toast } = useToast();
   const filterdData = chat.members.filter(
     (member) => member._id !== user._id
   )[0];
-
-  // console.log(data);
-  // console.log(chat.lastMessage);
   const handleOpenChat = async () => {
-    // dispatch(setSelectedChat({ chat: chat._id, user: filterdData }));
-    // const data = await getMessages(chat._id).unwrap();
-    // dispatch(setMessages(data));
-    refetch();
     navigate(`/app/messenger/${chat._id}`);
   };
+  // useEffect(() => {
+  //   if (inView) {
+  //     getMessages(chat._id);
+  //   }
+  // }, [inView, getMessages, chat._id]);
 
+  // const handleDeleteChat = async () => {
+  //   await deleteChat(chat._id);
+  //   navigate("/app/messenger");
+  //   toast({
+  //     title: "Success",
+  //     description: "Chat deleted successfully",
+  //   })
+  // }
   // console.log({ chat: chat.lastMessage });
   return (
     <div
       onClick={handleOpenChat}
       className="flex gap-4 items-center transition-colors dark:hover:bg-secondary hover:bg-black/10 p-4 rounded-md cursor-pointer"
+      ref={ref}
     >
       <div className="relative ">
         <Avatar>
@@ -60,9 +75,9 @@ const ChatCard = ({ chat }: IChatCardProps) => {
             />
           )}
 
-          {data && data.length > 0 && (
-            <span className="text-sm text-white bg-blue-500 w-[20px] h-[20px] rounded-full grid place-content-center ">
-              {data.length}
+          {messagesUnseen && messagesUnseen.length > 0 && (
+            <span className="text-sm text-white bg-blue-800 w-[20px] h-[20px] rounded-full grid place-content-center ">
+              {messagesUnseen.length}
             </span>
           )}
         </div>

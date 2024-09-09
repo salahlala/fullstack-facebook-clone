@@ -17,6 +17,7 @@ import {
 import { Textarea } from "@components/ui/textarea";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
+import { useToast } from "@components/ui/use-toast";
 
 interface PostEditorFormProps {
   isDialogOpen?: boolean;
@@ -38,7 +39,7 @@ const PostEditorForm = ({
 }: PostEditorFormProps) => {
   const [text, setText] = useState(oldText || "");
   const [image, setImage] = useState<File | null>(null);
-
+  const { toast } = useToast();
   const dispatch = useAppDispatch();
   const [createPost, { isLoading, isError, error }] = useCreatePostMutation();
   const [
@@ -75,11 +76,19 @@ const PostEditorForm = ({
     }
     try {
       if (type == "edit") {
-        const response = await updatePost(formData).unwrap();
-        console.log(response, "post updated");
+        await updatePost(formData).unwrap();
+        toast({
+          title: "Success",
+          description: "Post updated successfully",
+        });
+        // console.log(response, "post updated");
       } else if (type == "create") {
-        const response = await createPost(formData).unwrap();
-        console.log(response, "post created");
+        await createPost(formData).unwrap();
+        toast({
+          title: "Success",
+          description: "Post created successfully",
+        });
+        // console.log(response, "post created");
       }
       dispatch(closeDialog());
       setText("");

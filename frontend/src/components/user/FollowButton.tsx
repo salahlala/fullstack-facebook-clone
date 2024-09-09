@@ -21,7 +21,7 @@ const FollowButton = ({ id }: { id: string }) => {
     <div className={`${userLogin?._id === id ? "hidden" : "block"} `}>
       {checkFollowing ? (
         <Button
-          className="button dark:bg-secondary flex gap-1 items-center  "
+          className="button  flex gap-1 items-center  "
           onClick={handleFollowUser}
           disabled={isLoading}
         >
@@ -32,7 +32,7 @@ const FollowButton = ({ id }: { id: string }) => {
         </Button>
       ) : (
         <Button
-          className="button dark:bg-secondary flex gap-1 items-center "
+          className="button  flex gap-1 items-center "
           onClick={handleFollowUser}
           disabled={isLoading}
         >

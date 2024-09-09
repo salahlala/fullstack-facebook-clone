@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch } from "@store/hooks";
-
 import { login } from "@store/authSlice";
 import { useResetPasswordMutation } from "@features/api/authApiSlice";
+
+import type { ApiError } from "@typesFolder/apiError";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Button } from "@components/ui/button";
@@ -12,8 +13,7 @@ const ResetPassword = () => {
     password: "",
     confirmPassword: "",
   });
-  const [resetPassword, { isLoading, data, error }] =
-    useResetPasswordMutation();
+  const [resetPassword, { isLoading, error }] = useResetPasswordMutation();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { token } = useParams();
@@ -69,11 +69,10 @@ const ResetPassword = () => {
             value={formData.confirmPassword}
             onChange={handleChangeInput}
           />
-          <Button
-            type="submit"
-            className="dark:bg-background button"
-            disabled={isLoading}
-          >
+          {error && (
+            <p className="text-red-500">{(error as ApiError)?.message}</p>
+          )}
+          <Button type="submit" className=" button" disabled={isLoading}>
             Submit
           </Button>
         </form>

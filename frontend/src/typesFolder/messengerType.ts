@@ -1,10 +1,11 @@
 import type { TUser } from "./authType";
 
 export type TMessage = {
-  chat: string;
+  chat: TChat;
   content: string;
   seen: boolean;
   sender: TUser;
+  receiver?: string;
   status: string;
   _id: string;
   createdAt: string;

@@ -8,51 +8,68 @@ import ChatCard from "@components/messenger/ChatCard";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 
-import { useGetChatsQuery } from "@features/api/messengerApiSlice";
-import { apiSlice } from "@features/api/apiSlice";
+import {
+  useGetChatsQuery,
+  useCreateChatMutation,
+} from "@features/api/messengerApiSlice";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
 import {
   updateDeleteMessageCache,
   updateUnseenMessagesCache,
+  updateChatsCache,
+  updateCreateChatCache,
+  updateLastMessageCache,
 } from "@utils/cacheUtils";
 
 import { ImSpinner2 } from "react-icons/im";
 const MessengerLayout = () => {
-  const { data, isLoading } = useGetChatsQuery();
+  const { data: chats, isLoading } = useGetChatsQuery();
+  const [createChat] = useCreateChatMutation();
   const { socket } = useAppSelector((state) => state.socket);
   const outlet = useOutlet();
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!socket) return;
-    const handleNewMessage = (data: TMessage) => {
-      console.log("new message", data.chat);
-      dispatch(
-        apiSlice.util.invalidateTags([{ type: "Chat" as const, id: data.chat }])
+
+    const handleNewMessage = async (data: TMessage) => {
+      // check if there chat with this id
+      const checkChatExist = chats?.find(
+        (chat) => chat._id.toString() === data.chat.toString()
       );
+      if (!checkChatExist) {
+        if (data.receiver) {
+          // create new chat
+          const newChat = await createChat({
+            userId: data.sender._id,
+          }).unwrap();
+
+          console.log("chat not exist", data.receiver, data.sender);
+          updateCreateChatCache(dispatch, newChat);
+        }
+      }
+      // console.log("new message", data.chat);
+      updateLastMessageCache(dispatch, data);
+      updateUnseenMessagesCache(dispatch, data.chat.toString());
+
+      // updateChatsCache(dispatch, data.chat);
+      // dispatch(
+      //   apiSlice.util.invalidateTags([{ type: "Chat" as const, id: data.chat }])
+      // );
     };
-    const handleMessageDelivered = (chatId: string) => {
+    const handleMessageDelivered = (chat: TChat) => {
       console.log("message delivered");
-      updateUnseenMessagesCache(dispatch, chatId);
+      updateUnseenMessagesCache(dispatch, chat._id);
+      console.log({ chat });
+      // updateChatsCache(dispatch, chat);
     };
 
-    const handleMessageDeleted = (data: {
-      chatId: string;
-      messageId: string;
-    }) => {
-      const chatId = data.chatId;
-      dispatch(
-        apiSlice.util.updateQueryData(
-          "getMessages",
-          chatId,
-          (draft: TMessage[]) => {
-            return draft.filter(
-              (message: TMessage) => message._id.toString() !== data.messageId
-            );
-          }
-        )
-      );
-      // updateDeleteMessageCache(dispatch, data.chat, data.messageId);
+    const handleMessageDeleted = (data: { chat: TChat; messageId: string }) => {
+      // const chatId = data.chatId;
+
+      updateDeleteMessageCache(dispatch, data.chat._id, data.messageId);
+      updateChatsCache(dispatch, data.chat);
+
       console.log(data, "message delete");
     };
     socket.on("message-delivered", handleMessageDelivered);
@@ -64,7 +81,7 @@ const MessengerLayout = () => {
       socket.off("message-delivered", handleMessageDelivered);
       socket.off("message-deleted", handleMessageDeleted);
     };
-  }, [socket, dispatch]);
+  }, [socket, dispatch, createChat, chats]);
 
   return (
     <div className="flex min-h-screen gap-1 pt-[70px]">
@@ -78,14 +95,12 @@ const MessengerLayout = () => {
             placeholder="Search Messenger"
             type="search"
           />
-          <Button className="button !mt-0 !w-auto dark:bg-secondary">
-            Search
-          </Button>
+          <Button className="button !mt-0 !w-auto ">Search</Button>
         </form>
         {/* <div className="bg-secondary mb-4">search</div> */}
         {isLoading && <ImSpinner2 className="m-auto animate-spin text-3xl" />}
 
-        {data?.map((chat: TChat) => (
+        {chats?.map((chat: TChat) => (
           <ChatCard key={chat._id} chat={chat} />
         ))}
       </div>
