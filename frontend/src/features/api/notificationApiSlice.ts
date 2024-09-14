@@ -4,7 +4,7 @@ import { TNotification } from "@typesFolder/notificationType";
 
 // Define the response structure
 interface INotificationsResponse {
-  length: number;
+  unreadCount: number;
   notifications: TNotification[];
 }
 

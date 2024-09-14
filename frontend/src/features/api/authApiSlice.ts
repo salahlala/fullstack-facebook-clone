@@ -34,12 +34,13 @@ export const authSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: [{ type: "User", id: "CURRENT_USER" }],
     }),
-    signup: builder.mutation<void, authType>({
+    signup: builder.mutation<TUser, authType>({
       query: (credentials: authType) => ({
         url: "/auth/signup",
         method: "POST",
         body: credentials,
       }),
+      transformResponse: (response: { data: TUser }) => response.data,
       invalidatesTags: [{ type: "User", id: "CURRENT_USER" }],
     }),
     logout: builder.mutation<void, void>({

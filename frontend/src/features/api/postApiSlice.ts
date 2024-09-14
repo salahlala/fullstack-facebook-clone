@@ -54,17 +54,26 @@ export const postSlice = apiSlice.injectEndpoints({
           : [{ type: "Post", id: "LIST" }],
     }),
 
-    getFollowingPosts: builder.query<TPost[], void>({
-      query: () => "/posts/following",
-      transformResponse: (response: { data: TPost[] }) => response.data,
+    getFollowingPosts: builder.query<
+      { posts: TPost[]; hasMorePosts: boolean },
+      { limit?: number }
+    >({
+      query: ({ limit }) => `/posts/following?limit=${limit}`,
+      transformResponse: (response: {
+        data: { posts: TPost[]; hasMorePosts: boolean };
+      }) => {
+        return {
+          posts: response.data.posts,
+          hasMorePosts: response.data.hasMorePosts,
+        };
+      },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ _id }) => ({
+              ...result.posts.map(({ _id }) => ({
                 type: "Post" as const,
                 id: _id,
               })),
-              // { type: "Post" as const, id: "LIST" },
             ]
           : [],
     }),

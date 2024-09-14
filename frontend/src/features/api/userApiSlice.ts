@@ -1,5 +1,6 @@
 import { apiSlice } from "@features/api/apiSlice";
 import type { TUser } from "@typesFolder/authType";
+import type { TPost } from "@typesFolder/postType";
 import type { ApiError } from "@typesFolder/apiError";
 
 import { store } from "@store/index";
@@ -30,7 +31,6 @@ export const userSlice = apiSlice.injectEndpoints({
       query: (query) => ({
         url: `/users/search-users?name=${query}`,
       }),
-      keepUnusedDataFor: 0,
       transformResponse: (response: { data: TUser[] }) => response.data,
     }),
     getSuggestedUsers: builder.query<TUser[], void>({
@@ -56,12 +56,14 @@ export const userSlice = apiSlice.injectEndpoints({
       },
       invalidatesTags: (result) => [{ type: "User", id: result?._id }],
     }),
-    followUser: builder.mutation<{ message: string }, string>({
+    followUser: builder.mutation<{ message: string; data: TPost[] }, string>({
       query: (id) => ({
         url: `/users/follow/${id}`,
         method: "POST",
       }),
-
+      transformResponse: (response: { message: string; data: TPost[] }) => {
+        return { message: response.message, data: response.data };
+      },
       transformErrorResponse: (err: { status: number; data: ApiError }) => {
         return {
           status: err.status,
