@@ -1,13 +1,15 @@
+import mongoose from "mongoose";
+
 import Notification from "../models/notificationModel.js";
 import Post from "../models/postModel.js";
 import User from "../models/userModel.js";
+
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import sharp from "sharp";
+
 import { fileURLToPath } from "url";
-import busboy from "busboy";
-import { v2 as cloudinary } from "cloudinary";
 
 import { userMap } from "../socket/socket.js";
 
@@ -17,13 +19,9 @@ import {
 } from "../utils/cloudinary.js";
 
 import { getIO } from "../socket/socket.js";
-
-import mongoose from "mongoose";
 // Get the directory name of the current module file
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
-// export const uploadImg = upload.single("img");
 
 // Middleware to handle multer errors
 export const errorHandler = (err, req, res, next) => {
@@ -40,10 +38,8 @@ export const errorHandler = (err, req, res, next) => {
 export const resizePostPhoto = async (req, res, next) => {
   try {
     if (!req.file) return next();
-    console.log(req.file, "req.file");
 
     req.file.filename = `post-${req.user._id}-${Date.now()}.jpeg`;
-    console.log(req.file.filename, "req.file");
 
     if (!req.file.buffer || req.file.buffer.length === 0) {
       console.log("Empty file buffer");
@@ -81,8 +77,7 @@ export const createPost = async (req, res) => {
     if (req.file) {
       let imgPath = req.file.filename;
       curPath = path.join(__dirname, `../public/images/${imgPath}`);
-      console.log(req.file.filename, "req.file");
-      console.log(req.file, "create p os t controller");
+
       const result = await cloudinaryUploadImage(curPath);
       console.log(result, "result cloudinary");
       img = {
@@ -135,7 +130,7 @@ export const deletePost = async (req, res) => {
     }
     await Post.findByIdAndDelete(id);
     io.emit("delete-post", { postId: id, userId });
-    res.status(200).json({ message: "post deleted" });
+    res.status(204).json({ message: "post deleted" });
   } catch (error) {
     console.log(error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -193,33 +188,40 @@ export const likeUnlikePost = async (req, res) => {
   const userId = req.user._id;
   const io = getIO();
   try {
-    const post = await Post.findById(id);
+    const [post, userData] = await Promise.all([
+      await Post.findById(id),
+      await User.findById(userId).select("fullName profileImg bio followers"),
+    ]);
     if (!post) {
       return res.status(400).json({ error: "post not found" });
     }
-
     const isLiked = post.likes.includes(userId);
 
-    const notificationSent = await Notification.exists({
-      from: userId,
-      to: post.user,
-      type: "like",
-      postId: id,
-    });
-    const userData = await User.findById(userId).select(
-      "fullName profileImg bio followers"
-    );
     if (isLiked) {
-      await Post.updateOne({ _id: id }, { $pull: { likes: userId } });
-      await User.updateOne({ _id: userId }, { $pull: { likedPosts: id } });
+      post.likes = post.likes.filter(
+        (like) => like.toString() !== userId.toString()
+      );
+      await Promise.all([
+        // Post.updateOne({ _id: id }, { $pull: { likes: userId } }),
+        post.save(),
+        User.updateOne({ _id: userId }, { $pull: { likedPosts: id } }),
+      ]);
 
       io.emit("unlike-post", { postId: id, user: userData });
       return res.status(200).json({ message: "unliked successfully" });
     } else {
       post.likes.push(userId);
-      await User.updateOne({ _id: userId }, { $push: { likedPosts: id } });
+      await Promise.all([
+        post.save(),
+        User.updateOne({ _id: userId }, { $push: { likedPosts: id } }),
+      ]);
 
-      await post.save();
+      const notificationSent = await Notification.exists({
+        from: userId,
+        to: post.user,
+        type: "like",
+        postId: id,
+      });
       if (post.user.toString() !== userId.toString()) {
         if (!notificationSent) {
           const notification = new Notification({
@@ -237,7 +239,6 @@ export const likeUnlikePost = async (req, res) => {
         }
       }
 
-      // io.to(userId).emit("new-notification", { notification });
       io.emit("like-post", { postId: id, user: userData });
       return res.status(200).json({ message: "liked successfully" });
     }
@@ -285,7 +286,6 @@ export const updatePost = async (req, res) => {
       }
     } else if (req.file) {
       let imgPath = req.file.filename;
-      console.log(req.file, "from update image");
       curPath = path.join(__dirname, `../public/images/${imgPath}`);
       const result = await cloudinaryUploadImage(curPath);
       // console.log(result, "result filename");
@@ -334,6 +334,7 @@ export const getLikedPosts = async (req, res) => {
 };
 
 export const getFollowingPosts = async (req, res) => {
+  const { limit } = req.query;
   try {
     const userId = req.user._id;
     const user = await User.findById(userId);
@@ -344,11 +345,17 @@ export const getFollowingPosts = async (req, res) => {
     const posts = await Post.find({
       $or: [{ user: { $in: following } }, { user: userId }],
     })
+      .limit(Number(limit))
       .sort({ createdAt: -1 })
       .populate("user", "username profileImg fullName bio followers")
       .populate("likes", " username profileImg")
       .populate("comments.user", "username profileImg");
-    res.status(200).json({ data: posts });
+
+    const totalPosts = await Post.countDocuments({
+      $or: [{ user: { $in: following } }, { user: userId }],
+    });
+    const hasMorePosts = Number(limit) < totalPosts;
+    res.status(200).json({ data: { posts, hasMorePosts } });
   } catch (error) {
     console.log(error, "from get following posts");
   }
@@ -467,7 +474,6 @@ export const deleteComment = async (req, res) => {
       return res.status(400).json({ error: "Post not found" });
     }
 
-    console.log(post, "post from delete comment");
     const comment = post.comments.find(
       (comment) => comment._id.toString() === commentId
     );
@@ -490,7 +496,7 @@ export const deleteComment = async (req, res) => {
 
     io.emit("delete-comment", { postId, commentId });
 
-    res.status(200).json({ message: "Comment deleted successfully" });
+    res.status(204).json({ message: "Comment deleted successfully" });
   } catch (error) {
     console.log(error.message, "from delete comment");
     res.status(500).json({ error: "Internal Server Error" });

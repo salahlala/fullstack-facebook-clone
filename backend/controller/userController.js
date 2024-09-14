@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import User from "../models/userModel.js";
 import Notification from "../models/notificationModel.js";
+import Post from "../models/postModel.js";
 import bcrypt from "bcryptjs";
 import { v2 as cloudinary } from "cloudinary";
 import path from "path";
@@ -68,20 +69,27 @@ export const followUnfollowUser = async (req, res) => {
 
     if (isFollowing) {
       // unfollow
-      await User.findByIdAndUpdate(id, { $pull: { followers: currentUserID } });
-      await User.findByIdAndUpdate(currentUserID, {
-        $pull: { following: id },
-      });
+      await Promise.all([
+        User.findByIdAndUpdate(id, { $pull: { followers: currentUserID } }),
+        User.findByIdAndUpdate(currentUserID, {
+          $pull: { following: id },
+        }),
+      ]);
 
-      res.status(200).json({ message: "user unfollowed" });
+      res
+        .status(200)
+        .json({ message: "User unfollowed successfully", data: [] });
     } else {
       // follow
-      await User.findByIdAndUpdate(id, {
-        $push: { followers: currentUserID },
-      });
-      await User.findByIdAndUpdate(currentUserID, {
-        $push: { following: id },
-      });
+      await Promise.all([
+        User.findByIdAndUpdate(id, {
+          $push: { followers: currentUserID },
+        }),
+        User.findByIdAndUpdate(currentUserID, {
+          $push: { following: id },
+        }),
+      ]);
+
       if (!notificationSent) {
         // notification
         const notification = new Notification({
@@ -96,7 +104,17 @@ export const followUnfollowUser = async (req, res) => {
           io.to(socketId).emit("new-notification", notification);
         }
       }
-      res.status(200).json({ message: "user followed" });
+      const newUserPost = await Post.find({ user: id })
+        .limit(5)
+        .sort({ createdAt: -1 })
+        .populate("user", "username profileImg fullName bio followers")
+        .populate("likes", " username profileImg")
+        .populate("comments.user", "username profileImg");
+
+      console.log(newUserPost);
+      res
+        .status(200)
+        .json({ message: "User followed successfully", data: newUserPost });
     }
   } catch (error) {
     console.log(`error in  followUnfollowUser ${error}`);
@@ -153,8 +171,15 @@ export const getSuggestedUsers = async (req, res) => {
 };
 
 export const updateUser = async (req, res) => {
-  const { username, fullName, email, currentPassword, newPassword, bio } =
-    req.body;
+  const {
+    username,
+    fullName,
+    email,
+    currentPassword,
+    newPassword,
+    bio,
+    removeImg,
+  } = req.body;
   let { coverImg } = req.body;
   const userId = req.user._id;
   let curPath;
@@ -169,7 +194,6 @@ export const updateUser = async (req, res) => {
     ) {
       return res.status(400).json({ message: "fill all fields" });
     }
-    console.log({ currentPassword, newPassword });
     if (currentPassword && newPassword) {
       const isMatch = await bcrypt.compare(currentPassword, user.password);
       if (!isMatch) {
@@ -186,18 +210,13 @@ export const updateUser = async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(newPassword, salt);
     }
+    const imgId = user.profileImg.public_id;
+
     if (req.file) {
       const imgPath = req.file.filename;
       curPath = path.join(__dirname, `../public/images/${imgPath}`);
-      console.log(req.file, "from update user profile img");
-      // if (user.profileImg) {
-      //   await cloudinary.uploader.destroy(
-      //     user.profileImg.split("/").pop().split(".")[0]
-      //   );
-      // }
-      console.log(curPath);
+
       const upload = await cloudinaryUploadImage(curPath);
-      const imgId = user.profileImg.public_id;
       if (imgId) {
         await cloudinaryDeleteImage(imgId);
       }
@@ -206,17 +225,15 @@ export const updateUser = async (req, res) => {
         url: upload?.secure_url,
       };
     }
-
-    // if (coverImg) {
-    //   if (user.coverImg) {
-    //     await cloudinary.uploader.destroy(
-    //       user.coverImg.split("/").pop().split(".")[0]
-    //     );
-    //   }
-    //   const upload = await cloudinary.uploader.upload(coverImg);
-    //   user.coverImg = upload.secure_url;
-    // }
-
+    if (removeImg == "true") {
+      if (imgId) {
+        await cloudinaryDeleteImage(imgId);
+      }
+      user.profileImg = {
+        public_id: null,
+        url: "https://res.cloudinary.com/dypa1tbbf/image/upload/v1725929616/default-profile_taxhcr.png",
+      };
+    }
     user.fullName = fullName || user.fullName;
     user.bio = bio || user.bio;
     user.email = email || user.email;
