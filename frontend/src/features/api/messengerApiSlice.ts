@@ -1,5 +1,6 @@
 import { apiSlice } from "@features/api/apiSlice";
 import type { TChat, TMessage } from "@typesFolder/messengerType";
+import type { ApiError } from "@typesFolder/apiError";
 export const messengerSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getMessages: builder.query<TMessage[], string>({
@@ -140,6 +141,20 @@ export const messengerSlice = apiSlice.injectEndpoints({
       //   { type: "Chat" as const, id: chatId },
       // ],
     }),
+    getChatsBySearch: builder.query<TChat[], string>({
+      query: (query: string) => ({
+        url: `/chats/search?query=${query}`,
+      }),
+      transformErrorResponse: (err: { status: number; data: ApiError }) => {
+        return {
+          status: err.status,
+          message: err.data.message || "some error",
+        };
+      },
+      transformResponse: (response: { data: TChat[] }) => {
+        return response.data;
+      },
+    }),
   }),
 });
 
@@ -148,12 +163,13 @@ export const {
   useLazyGetMessagesQuery,
   useGetMessagesNotSeenQuery,
   useLazyGetMessagesNotSeenQuery,
-  useDeleteMessageMutation,
 
   useGetChatsQuery,
   useGetChatByIdQuery,
   useLazyGetChatByIdQuery,
+  useGetChatsBySearchQuery,
+
+  useDeleteMessageMutation,
   useSendMessageMutation,
   useCreateChatMutation,
-  useDeleteChatMutation,
 } = messengerSlice;
