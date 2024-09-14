@@ -17,16 +17,20 @@ import {
   useSendMessageMutation,
   useGetMessagesQuery,
 } from "@features/api/messengerApiSlice";
-
-import { ImSpinner2 } from "react-icons/im";
-import { IoMdClose } from "react-icons/io";
-import { IoMdSend } from "react-icons/io";
 import {
   updateMessagesStatusCache,
   updateUnseenMessagesCache,
   updateNewMessagesCache,
   updateLastMessageCache,
 } from "@utils/cacheUtils";
+
+import { ImSpinner2 } from "react-icons/im";
+import { IoMdClose } from "react-icons/io";
+import { IoMdSend } from "react-icons/io";
+import { MdEmojiEmotions } from "react-icons/md";
+
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 const MessengerPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   // console.log({ chatId });
@@ -44,21 +48,49 @@ const MessengerPage = () => {
     useSendMessageMutation();
   const [messageContent, setMessageContent] = useState("");
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const typingRef = useRef<HTMLDivElement | null>(null);
 
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
   const { socket, onlineUsers } = useAppSelector((state) => state.socket);
-
+  const [isTypingUser, setIsTypingUser] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
   const receiver = chat?.members.filter(
     (member) => member._id?.toString() !== user._id
   )[0];
 
-  // set message in the redux store
-
-  // console.log({ user, receiver });
-  // console.log(chat);
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setMessageContent(e.target.value);
+    if (!isTyping) {
+      socket?.emit("typing", {
+        receiver: receiver?._id,
+      });
+      setIsTyping(true);
+    }
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+    typingTimeout.current = setTimeout(() => {
+      socket?.emit("stop-typing", {
+        receiver: receiver?._id,
+      });
+      setIsTyping(false);
+    }, 1000);
+  };
+
+  const handleEmojiClick = (emoji: any) => {
+    setMessageContent((prev) => prev + emoji.native);
+  };
+  const handleShowEmojiPicker = () => {
+    setIsEmojiPickerOpen(true);
+  };
+
+  const handleEmojiPickerClose = () => {
+    if (isEmojiPickerOpen) {
+      setIsEmojiPickerOpen(false);
+    }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -86,6 +118,12 @@ const MessengerPage = () => {
       console.log("error", error);
     }
   };
+
+  useEffect(() => {
+    if (typingRef.current) {
+      typingRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [isTypingUser]);
 
   useEffect(() => {
     if (!socket || !chat?._id) return;
@@ -120,7 +158,6 @@ const MessengerPage = () => {
       chatId: string;
       messagesToUpdate: TMessage[];
     }) => {
-      console.log({ chatId, chat }, "from message delivered");
       if (chatId == chat?._id) {
         console.log("message is delivered and will update");
 
@@ -154,8 +191,6 @@ const MessengerPage = () => {
 
   useEffect(() => {
     if (!messagesLoading) {
-      console.log("unseen cache updated");
-
       updateUnseenMessagesCache(dispatch, chatId!);
     }
   }, [messagesLoading, dispatch, chatId]);
@@ -198,6 +233,20 @@ const MessengerPage = () => {
     }
   }, [chatId, messages, socket, user, receiver, dispatch, onlineUsers]);
 
+  useEffect(() => {
+    if (!socket) return;
+    socket.on("typing", () => {
+      setIsTypingUser(true);
+    });
+    socket.on("stop-typing", () => {
+      setIsTypingUser(false);
+    });
+
+    return () => {
+      socket.off("typing");
+      socket.off("stop-typing");
+    };
+  }, [socket]);
   return (
     // <div className="flex min-h-screen gap-1 pt-[70px]">
     <div className="messages basis-full max-h-[calc(100vh-70px)] bg-card flex flex-col">
@@ -209,7 +258,10 @@ const MessengerPage = () => {
             <ImSpinner2 className="animate-spin text-3xl" />
           ) : (
             <>
-              <div className="relative flex items-center gap-2 ">
+              <Link
+                to={`/app/profile/${receiver?._id}`}
+                className="relative flex items-center gap-2 hover-color rounded-md px-2 cursor-pointer"
+              >
                 <Avatar>
                   <AvatarImage src={receiver?.profileImg.url} />
                   <AvatarFallback>
@@ -218,12 +270,9 @@ const MessengerPage = () => {
                 </Avatar>
                 <h1 className="text-2xl capitalize">{receiver?.fullName}</h1>
                 {receiver && <OnlineStatus reciver={receiver?._id} />}
-              </div>
-              <Link
-                to="/app/messenger"
-                className="dark:hover:bg-background hover:bg-black/10 rounded transition-colors"
-              >
-                <IoMdClose className="text-3xl cursor-pointer" />
+              </Link>
+              <Link to="/app/messenger" className="hover-color rounded-full ">
+                <IoMdClose className="text-2xl cursor-pointer" />
               </Link>
             </>
           )}
@@ -241,22 +290,60 @@ const MessengerPage = () => {
         ) : (
           <>
             {messages?.map((message: TMessage) => (
-              <div ref={scrollRef} key={message._id}>
+              <div ref={scrollRef} key={message._id} className="max-w-full ">
                 <MessageCard message={message} />
               </div>
             ))}
+            {isTypingUser && (
+              <div className=" w-fit my-5 px-3">
+                <div
+                  className=" flex items-center gap-1 justify-center"
+                  ref={typingRef}
+                >
+                  <div className="  rounded-full w-2.5 h-2.5 bg-black/10 dark:bg-white/10 animate-[typing-bounce_1s_infinite] " />
+                  <div className=" rounded-full w-2.5 h-2.5 bg-black/10 dark:bg-white/10 animate-[typing-bounce_1s_infinite] delay-200" />
+                  <div className=" rounded-full w-2.5 h-2.5 bg-black/10 dark:bg-white/10  animate-[typing-bounce_1s_infinite] delay-400" />
+                </div>
+                {/* <BsThreeDots className="animate-ping text-lg font-bold" /> */}
+                {/* <span className="animate-ping text-2xl font-bold">...</span> */}
+              </div>
+            )}
           </>
         )}
       </div>
       <div className="textArea bottom-0 flex p-4 basis-[10%] bg-card dark:bg-secondary shadow-md">
-        <form action="" className="w-full flex gap-4" onSubmit={handleSubmit}>
-          <Input
-            className="w-full"
-            placeholder="write a message"
-            value={messageContent}
-            onChange={handleInputChange}
-            autoFocus
-          />
+        <form
+          action=""
+          className="w-full flex gap-4 relative"
+          onSubmit={handleSubmit}
+        >
+          <div className="relative w-full">
+            <Input
+              className="w-full"
+              placeholder="write a message"
+              value={messageContent}
+              onChange={handleInputChange}
+              autoFocus
+              disabled={sendMessageLoading}
+            />
+            <MdEmojiEmotions
+              onClick={handleShowEmojiPicker}
+              className="icon absolute right-2 top-1/2 -translate-y-1/2 text-2xl cursor-pointer"
+            />
+            <div
+              className={`absolute right-0 opacity-0 bottom-[50px] scale-0 ${
+                isEmojiPickerOpen ? "opacity-100 scale-100" : ""
+              } transition-opacity `}
+            >
+              <Picker
+                data={data}
+                onEmojiSelect={handleEmojiClick}
+                onClickOutside={handleEmojiPickerClose}
+                searchPosition={"none"}
+                skinTonePosition={"none"}
+              />
+            </div>
+          </div>
 
           <Button
             type="submit"
