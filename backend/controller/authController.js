@@ -80,29 +80,34 @@ export const signup = async (req, res) => {
     }
     // const salts = await bcrypt.genSalt(10);
     // const hashedPassword = await bcrypt.hash(password, salts);
-    const newUser = await new User({
+    const newUser = await User.create({
       username,
       fullName,
       email,
       password,
     });
 
-    if (newUser) {
-      // generateTokenAndSetCookie(newUser._id, res);
-      await newUser.save();
-      return res.status(201).json({
+    const token = generateTokenAndSetCookie(newUser._id, res);
+
+    res.status(201).json({
+      message: "Signup successful",
+      data: {
         _id: newUser._id,
-        username: newUser.username,
         email: newUser.email,
+        username: newUser.username,
         fullName: newUser.fullName,
-        followers: newUser.followers,
-        following: newUser.following,
-        profileImg: newUser.profileImg,
-        bio: newUser.bio,
-      });
-    } else {
-      return res.status(400).json({ message: "Invalid user data" });
-    }
+      },
+    });
+    // return res.status(201).json({
+    //   _id: newUser._id,
+    //   username: newUser.username,
+    //   email: newUser.email,
+    //   fullName: newUser.fullName,
+    //   followers: newUser.followers,
+    //   following: newUser.following,
+    //   profileImg: newUser.profileImg,
+    //   bio: newUser.bio,
+    // });
   } catch (error) {
     console.log("Error in signup controller", error.message);
     res.status(500).json({ error: "Internal Server Error" });
