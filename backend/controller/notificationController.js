@@ -17,7 +17,7 @@ export const getNotifications = async (req, res) => {
     });
     res.status(200).json({
       data: {
-        length: unreadCount,
+        unreadCount: unreadCount,
         notifications,
       },
     });
@@ -45,7 +45,7 @@ export const deleteNotification = async (req, res) => {
   try {
     const userId = req.user._id;
     await Notification.deleteMany({ to: userId, read: true });
-    res.status(200).json({ message: "notification deleted successfully" });
+    res.status(204).json({ message: "notification deleted successfully" });
   } catch (error) {
     console.log(error, "from delete notification");
     res.status(500).json({ error: "Internal Server Error" });
@@ -61,7 +61,7 @@ export const deleteNotificationById = async (req, res) => {
       return res.status(404).json({ error: "notification not found" });
     }
     await Notification.findByIdAndDelete(id);
-    res.status(200).json({ message: "notification deleted successfully" });
+    res.status(204).json({ message: "notification deleted successfully" });
   } catch (error) {
     console.log(error, "from delete notification");
     res.status(500).json({ error: "Internal Server Error" });
