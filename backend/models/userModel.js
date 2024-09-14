@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { Schema, model } from "mongoose";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+const defaultImg =
+  "https://res.cloudinary.com/dypa1tbbf/image/upload/v1725929616/default-profile_taxhcr.png";
 const userSchema = new Schema(
   {
     username: {
@@ -51,7 +53,7 @@ const userSchema = new Schema(
       type: Object,
       default: {
         public_id: null,
-        url: null,
+        url: defaultImg || null,
       },
     },
     bio: { type: String, default: "" },
