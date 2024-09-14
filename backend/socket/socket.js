@@ -1,8 +1,6 @@
 import { Server } from "socket.io";
-import http from "http";
 import express from "express";
 import Message from "../models/messageModel.js";
-import Chat from "../models/chatModel.js";
 const app = express();
 // const server = http.createServer(app);
 
@@ -24,19 +22,23 @@ const initSocket = (server) => {
     }
     io.emit("getUsers", Array.from(userMap.keys()));
 
+    socket.on("typing", (data) => {
+      const receiverSocketId = userMap.get(data.receiver);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("typing");
+      }
+    });
+
+    socket.on("stop-typing", (data) => {
+      const receiverSocketId = userMap.get(data.receiver);
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("stop-typing");
+      }
+    });
+
     socket.on("send-message", async (data) => {
       const receiverSocketId = userMap.get(data.receiver);
-      // const updatedChat = await Chat.updateOne(
-      //   { _id: data.chat },
-      //   {
-      //     lastMessage: data._id,
-      //   },
-      //   {
-      //     new: true,
-      //   }
-      // )
-      //   .populate("lastMessage", "content createdAt ")
-      //   .populate("members", "fullName profileImg email");
+
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("new-message", data);
         // data.chat is populated
@@ -51,15 +53,12 @@ const initSocket = (server) => {
           { $set: { status: "delivered" } }
         );
 
-        console.log({ messageUpdate }, "update message to delivered");
         if (messageUpdate.modifiedCount > 0) {
           console.log("message is updated to delivered event sent");
           // the chat is not updated to the last message
           io.to(receiverSocketId).emit("message-delivered", data.chat);
         }
       }
-
-      console.log({ data }, "from sendMessage");
     });
     socket.on("messageRead", async ({ chatId, receiver }) => {
       const socketId = userMap.get(receiver);
