@@ -195,6 +195,24 @@ export const getMessagesNotSeen = async (req, res) => {
   }
 };
 
+export const getAllMessagesNotSeen = async (req, res) => {
+  const userId = req.user._id;
+  try {
+    const messages = await Message.countDocuments({
+      sender: { $ne: userId },
+      seen: false,
+      chat: {
+        $in: await Chat.find({ members: userId }).distinct("_id"),
+      },
+    });
+
+    res.status(200).json({ data: messages });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
 // export const deleteMessage = async (req, res) => {
 //   const { messageId } = req.params;
 //   try {

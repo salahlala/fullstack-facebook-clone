@@ -36,12 +36,14 @@ export const messengerSlice = apiSlice.injectEndpoints({
           ? [
               // { type: "Message" as const, id: chatId },
               { type: "Message" as const, id: `UNSEEN-${chatId}` },
-              // ...result.map(({ _id }) => ({
-              //   type: "Message" as const,
-              //   id: _id,
-              // })),
             ]
           : [{ type: "Message", id: chatId }],
+    }),
+    getAllMessagesNotSeen: builder.query<number, void>({
+      query: () => "/messages/allunseen",
+      transformResponse: (response: { data: number }) => response.data,
+
+      providesTags: () => [{ type: "Message", id: "ALLUNSEEN" }],
     }),
     sendMessage: builder.mutation<
       TMessage,
@@ -66,23 +68,6 @@ export const messengerSlice = apiSlice.injectEndpoints({
         url: `/messages/${chatId}/${messageId}`,
         method: "DELETE",
       }),
-
-      // async onQueryStarted(
-      //   { messageId, chatId },
-      //   { dispatch, queryFulfilled }
-      // ) {
-      //   const patchResult = updateDeleteMessageCache(
-      //     dispatch,
-      //     chatId,
-      //     messageId
-      //   );
-      //   try {
-      //     await queryFulfilled;
-      //   } catch (error) {
-      //     patchResult.undo();
-      //     console.error("Error deleting message:", error);
-      //   }
-      // },
     }),
     createChat: builder.mutation<TChat, { userId: string }>({
       query: (data) => ({
@@ -163,6 +148,7 @@ export const {
   useLazyGetMessagesQuery,
   useGetMessagesNotSeenQuery,
   useLazyGetMessagesNotSeenQuery,
+  useGetAllMessagesNotSeenQuery,
 
   useGetChatsQuery,
   useGetChatByIdQuery,
