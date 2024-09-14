@@ -5,13 +5,19 @@ import { useLocation } from "react-router-dom";
 import { useGetNotificationsQuery } from "@features/api/notificationApiSlice";
 
 import { closeAllDialogs } from "@store/dialogUiSlice";
+import { setSocket, setOnlineUsers } from "@store/socketSlice";
 import { useAppDispatch, useAppSelector } from "@store/hooks";
+import {
+  updateUnseenMessagesCache,
+  updateLastMessageCache,
+} from "@utils/cacheUtils";
 
 import Header from "@components/common/Header";
 import { Toaster } from "@components/ui/toaster";
 
 import { io, Socket } from "socket.io-client";
-import { setSocket, setOnlineUsers } from "@store/socketSlice";
+
+import { TMessage, TChat } from "@typesFolder/messengerType";
 const ProtectLayout = () => {
   const { pathname } = useLocation();
   const dispatch = useAppDispatch();
@@ -31,6 +37,20 @@ const ProtectLayout = () => {
         const handleNewNotification = () => {
           refetchNotifications();
         };
+
+        const handleNewMessage = async (data: TMessage) => {
+          console.log("new message");
+          // check if there chat with this id
+          updateLastMessageCache(dispatch, data);
+          updateUnseenMessagesCache(dispatch, data.chat.toString());
+        };
+
+        const handleMessageDelivered = (chat: TChat) => {
+          console.log("message delivered");
+          updateUnseenMessagesCache(dispatch, chat._id);
+        };
+        socket.current.on("new-message", handleNewMessage);
+        socket.current.on("message-delivered", handleMessageDelivered);
         socket.current.on("getUsers", (users) => {
           dispatch(setOnlineUsers(users));
         });
@@ -45,8 +65,6 @@ const ProtectLayout = () => {
         socket.current.off("getUsers");
         socket.current.off("new-notification");
       }
-      // socket.current?.disconnect();
-      // socket.current?.off("new-notification", handleNewNotification);
     };
   }, [user, dispatch, refetchNotifications]);
 

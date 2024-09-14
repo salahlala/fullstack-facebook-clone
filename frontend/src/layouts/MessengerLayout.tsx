@@ -65,24 +65,9 @@ const MessengerLayout = () => {
             userId: data.sender._id,
           }).unwrap();
 
-          console.log("chat not exist", data.receiver, data.sender);
           updateCreateChatCache(dispatch, newChat);
         }
       }
-      // console.log("new message", data.chat);
-      updateLastMessageCache(dispatch, data);
-      updateUnseenMessagesCache(dispatch, data.chat.toString());
-
-      // updateChatsCache(dispatch, data.chat);
-      // dispatch(
-      //   apiSlice.util.invalidateTags([{ type: "Chat" as const, id: data.chat }])
-      // );
-    };
-    const handleMessageDelivered = (chat: TChat) => {
-      console.log("message delivered");
-      updateUnseenMessagesCache(dispatch, chat._id);
-      console.log({ chat });
-      // updateChatsCache(dispatch, chat);
     };
 
     const handleMessageDeleted = (data: { chat: TChat; messageId: string }) => {
@@ -93,13 +78,12 @@ const MessengerLayout = () => {
 
       console.log(data, "message delete");
     };
-    socket.on("message-delivered", handleMessageDelivered);
+
     socket.on("new-message", handleNewMessage);
 
     socket.on("message-deleted", handleMessageDeleted);
     return () => {
       socket.off("new-message", handleNewMessage);
-      socket.off("message-delivered", handleMessageDelivered);
       socket.off("message-deleted", handleMessageDeleted);
     };
   }, [socket, dispatch, createChat, chats]);
