@@ -12,6 +12,7 @@ import {
   useGetNotificationsQuery,
   useMarkNotificationAsReadMutation,
 } from "@features/api/notificationApiSlice";
+import { useGetAllMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
 
 import SearchList from "@components/user/SearchList";
 import Notification from "@components/user/Notification";
@@ -38,11 +39,13 @@ import { MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { BsFillBellFill } from "react-icons/bs";
 import { IoIosSearch } from "react-icons/io";
 
+import notificationSound from "@assets/notification.mp3";
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
   const { data: notifications } = useGetNotificationsQuery();
   const [markNotificationAsRead] = useMarkNotificationAsReadMutation();
+  const { data: allMessages } = useGetAllMessagesNotSeenQuery();
   const [isAnimated, setIsAnimated] = useState(false);
   const [queryName, setQueryName] = useState("");
   const [debonceName, setDebonceName] = useState("");
@@ -112,7 +115,16 @@ const Header = () => {
 
     return () => clearTimeout(timeout);
   }, [notifications?.unreadCount, markNotificationAsRead, openNotification]);
+  useEffect(() => {
+    const audio = new Audio(notificationSound);
+    audio.preload = "auto";
 
+    if (allMessages) {
+      audio.play();
+    }
+
+    return () => audio.pause();
+  }, [allMessages]);
   return (
     <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between md:gap-7 gap-2  ">
       <Link to="/app">
@@ -167,8 +179,15 @@ const Header = () => {
       </div> */}
       <div className="flex gap-3 items-center justify-end md:w-full text-secondary-foreground">
         <Link to="/app/messenger">
-          <div className="icon">
+          <div className="icon relative ">
             <FaFacebookMessenger className="" />
+            <div
+              className={` ${
+                !allMessages || allMessages === 0 ? "hidden" : "block"
+              } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-800 rounded-full top-0 right-0`}
+            >
+              {allMessages}
+            </div>
           </div>
         </Link>
 
