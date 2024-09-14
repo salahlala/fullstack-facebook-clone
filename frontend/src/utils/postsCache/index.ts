@@ -4,14 +4,15 @@ import type { TUser } from "@typesFolder/authType";
 import type { TPost, TComment } from "@typesFolder/postType";
 export const updatePostDeleteCache = (
   dispatch: AppDispatch,
-  postId: string
+  postId: string,
+  limit: number
 ) => {
   dispatch(
     postSlice.util.updateQueryData(
       "getFollowingPosts",
-      undefined,
-      (draft: TPost[]) => {
-        return draft.filter((post) => post._id !== postId);
+      { limit },
+      (draft: { posts: TPost[] }) => {
+        draft.posts = draft.posts.filter((post) => post._id !== postId);
       }
     )
   );
@@ -19,30 +20,36 @@ export const updatePostDeleteCache = (
 
 export const updatePostUpdateCache = (
   dispatch: AppDispatch,
-
-  updatedPost: TPost
+  updatedPost: TPost,
+  limit: number
 ) => {
   dispatch(
     postSlice.util.updateQueryData(
       "getFollowingPosts",
-      undefined,
-      (draft: TPost[]) => {
-        const index = draft.findIndex((post) => post._id === updatedPost._id);
+      { limit },
+      (draft: { posts: TPost[] }) => {
+        const index = draft.posts.findIndex(
+          (post) => post._id === updatedPost._id
+        );
         if (index !== -1) {
-          draft[index] = updatedPost;
+          draft.posts[index] = updatedPost;
         }
       }
     )
   );
 };
 
-export const updateNewPostCache = (dispatch: AppDispatch, data: TPost) => {
+export const updateNewPostCache = (
+  dispatch: AppDispatch,
+  data: TPost,
+  limit: number
+) => {
   dispatch(
     postSlice.util.updateQueryData(
       "getFollowingPosts",
-      undefined,
-      (draft: TPost[]) => {
-        draft.unshift(data);
+      { limit },
+      (draft: { posts: TPost[] }) => {
+        draft.posts.unshift(data);
       }
     )
   );

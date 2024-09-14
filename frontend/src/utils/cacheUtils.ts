@@ -11,6 +11,9 @@ export const updateUnseenMessagesCache = (
   dispatch(
     apiSlice.util.invalidateTags([{ type: "Message", id: `UNSEEN-${chatId}` }])
   );
+  dispatch(
+    apiSlice.util.invalidateTags([{ type: "Message", id: "ALLUNSEEN" }])
+  );
 };
 
 export const updateMessagesStatusCache = (
