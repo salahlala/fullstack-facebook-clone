@@ -1,5 +1,5 @@
 import Chat from "../models/chatModel.js";
-
+import User from "../models/userModel.js";
 export const createChat = async (req, res) => {
   const { userId } = req.body;
   const currentUser = req.user._id.toString();
@@ -106,6 +106,37 @@ export const deleteChat = async (req, res) => {
     res.status(200).json({ message: "Chat deleted successfully" });
   } catch (error) {
     console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export const findChatsByQuery = async (req, res) => {
+  const { query } = req.query;
+  const currentUser = req.user._id;
+  try {
+    if (!query || query.trim() === "") {
+      return res.status(200).json({ data: [] });
+    }
+    const users = await User.find({
+      _id: { $ne: currentUser },
+      $or: [
+        { username: { $regex: query, $options: "i" } },
+        {
+          fullName: { $regex: query, $options: "i" },
+        },
+      ],
+    }).select("_id");
+
+    const usersIds = users.map((user) => user._id);
+    const chats = await Chat.find({
+      $and: [{ members: currentUser }, { members: { $in: usersIds } }],
+    })
+      .populate("members", "profileImg fullName")
+      .populate("lastMessage", "content createdAt");
+
+    res.status(200).json({ data: chats });
+  } catch (error) {
+    console.log(error.message, "getChats");
     res.status(500).json({ message: error.message });
   }
 };
