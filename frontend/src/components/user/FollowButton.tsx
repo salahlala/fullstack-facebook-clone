@@ -2,17 +2,25 @@ import {
   useGetMeQuery,
   useFollowUserMutation,
 } from "@features/api/userApiSlice";
+import { updateNewPostCache } from "@utils/postsCache";
+import { useAppDispatch } from "@store/hooks";
+
 import { Button } from "@components/ui/button";
 import { ImSpinner2 } from "react-icons/im";
 
 const FollowButton = ({ id }: { id: string }) => {
   const { data: userLogin } = useGetMeQuery();
   const [followUser, { isLoading }] = useFollowUserMutation();
-
+  const dispatch = useAppDispatch();
   const checkFollowing = userLogin?.following.find((user) => user._id === id);
+  const limit = localStorage.getItem("limit") || 10;
   const handleFollowUser = async () => {
     try {
-      await followUser(id).unwrap();
+      const data = await followUser(id).unwrap();
+      data.data.forEach((post) => {
+        updateNewPostCache(dispatch, post, Number(limit));
+      });
+      console.log(data.data, "from follow");
     } catch (error) {
       console.log(error);
     }
