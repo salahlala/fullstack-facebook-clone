@@ -18,7 +18,7 @@ const CreatePost = ({ id }: { id?: string }) => {
     <>
       <div className="flex items-center gap-2 p-4 shadow  rounded bg-card mb-3">
         <p
-          className="bg-secondary cursor-pointer w-full py-2 px-3 rounded-full hover:bg-background duration-300 transition-colors"
+          className="bg-secondary cursor-pointer w-full py-2 px-4 rounded-full hover-color"
           onClick={handleOpenDialog}
         >
           Write a post

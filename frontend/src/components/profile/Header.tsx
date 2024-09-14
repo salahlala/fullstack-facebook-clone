@@ -125,8 +125,10 @@ const Header = ({
           </div>
         </div>
         <Avatar className="w-[60px] h-[60px]  md:w-[80px] md:h-[80px]">
-          <AvatarImage src={userProfile?.profileImg?.url || defaultProfile} />
-          <AvatarFallback>{userProfile?.username.slice(0, 1)}</AvatarFallback>
+          <AvatarImage src={userProfile?.profileImg?.url} />
+          <AvatarFallback>
+            {userProfile?.fullName.slice(0, 2).toUpperCase()}
+          </AvatarFallback>
         </Avatar>
         {/* <img
           src={data?.profileImg?.url}

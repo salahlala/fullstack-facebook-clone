@@ -57,7 +57,7 @@ const PostHeader = ({
   const [postId, setPostId] = useState("");
   const [oldText, setOldText] = useState("");
   const [oldImage, setOldImage] = useState("");
-
+  const [isEdit, setIsEdit] = useState(false);
   const { isDialogOpen, type } = useAppSelector((state) => state.ui);
   const dispatch = useAppDispatch();
   const [deletePost, { isLoading: isLoadingDelete }] = useDeletePostMutation();
@@ -68,11 +68,6 @@ const PostHeader = ({
     setIsOpen(!isOpen);
   };
 
-  // const handleOpenChange = (open: boolean) => {
-  //   if (!isLoadingDelete) {
-  //     setAlertDialogOpen(open);
-  //   }
-  // };
   useEffect(() => {
     if (isDeletingSuccess) {
       setIsOpen(false);
@@ -80,11 +75,12 @@ const PostHeader = ({
     }
   }, [isDeletingSuccess]);
 
-  const handleEditClick = (post: TPost): void => {
+  const handleEditClick = () => {
     console.log(post, "from edit click");
     setPostId(post._id);
     setOldText(post.text || "");
     setOldImage(post.img?.url || "");
+    setIsEdit(true);
     dispatch(openDialog("edit"));
   };
 
@@ -106,7 +102,7 @@ const PostHeader = ({
       <div className="flex items-center gap-3">
         <Link to={`/app/profile/${post.user._id}`}>
           <Avatar className="w-[60px] h-[60px]">
-            <AvatarImage src={post.user.profileImg?.url || defaultProfile} />
+            <AvatarImage src={post.user.profileImg?.url} />
             <AvatarFallback>
               {post.user.username?.slice(0, 1).toUpperCase()}
             </AvatarFallback>
@@ -116,7 +112,7 @@ const PostHeader = ({
 
         <div className="">
           <CardHover user={post.user} />
-          <p className="font-medium dark:text-white/60 text-black/60 text-sm">
+          <p className="font-medium  text-sm">
             <ReactTimeAgo
               date={new Date(post?.createdAt || Date.now())}
               locale="en-US"
@@ -129,31 +125,26 @@ const PostHeader = ({
         <>
           <Popover open={isOpen} onOpenChange={handleOpen}>
             <PopoverTrigger>
-              <BsThreeDots className="dark:text-white/60" />
+              <div className="icon">
+                <BsThreeDots className="dark:text-white/60" />
+              </div>
             </PopoverTrigger>
             <PopoverContent>
               <div className="flex flex-col gap-3">
                 <div
-                  onClick={() => handleEditClick(post)}
+                  onClick={handleEditClick}
                   className={`${
                     isLoading && "pointer-events-none"
-                  } flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                  } flex gap-2 cursor-pointer items-center hover-color p-2 rounded-md`}
                 >
                   <MdEdit className="" />
                   <p>Edit</p>
                 </div>
 
-                {/* {isLoading && (
-                  <Button disabled>
-                    <ImSpinner2 className="mr-2 w-4 animate-spin" />
-                    please wait
-                  </Button>
-                )} */}
-
                 <AlertDialog open={alertDialogOpen}>
                   <AlertDialogTrigger onClick={() => setAlertDialogOpen(true)}>
                     <div
-                      className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                      className={` flex gap-2 cursor-pointer items-center hover-color p-2 rounded-md`}
                     >
                       <FaTrashAlt className="" />
                       <p>Delete</p>
@@ -195,7 +186,7 @@ const PostHeader = ({
               </div>
             </PopoverContent>
           </Popover>
-          {isDialogOpen && postId && type === "edit" && (
+          {isDialogOpen && postId && type === "edit" && isEdit && (
             <PostEditorForm
               isDialogOpen={isDialogOpen}
               type="edit"
@@ -204,6 +195,7 @@ const PostHeader = ({
               oldText={oldText}
               oldImage={oldImage}
               setOldImage={setOldImage}
+              setIsEdit={setIsEdit}
             />
           )}
         </>

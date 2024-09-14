@@ -47,7 +47,7 @@ const ChatCard = ({ chat }: IChatCardProps) => {
   return (
     <div
       onClick={handleOpenChat}
-      className="flex gap-4 items-center transition-colors dark:hover:bg-secondary hover:bg-black/10 p-4 rounded-md cursor-pointer"
+      className="flex gap-4 items-center transition-colors hover-color p-4 rounded-md cursor-pointer"
       ref={ref}
     >
       <div className="relative ">

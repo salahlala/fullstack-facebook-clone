@@ -29,6 +29,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@components/ui/tooltip";
+import { useToast } from "@components/ui/use-toast";
 
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa6";
@@ -38,14 +39,6 @@ import { ImSpinner2 } from "react-icons/im";
 
 interface IMessageCardProps {
   message: TMessage;
-  // reciver: {
-  //   _id: string;
-  //   fullName: string;
-  //   profileImg: {
-  //     public_id: string;
-  //     url: string;
-  //   };
-  // };
 }
 const MessageCard = ({ message }: IMessageCardProps) => {
   const { user } = useAppSelector((state) => state.auth);
@@ -54,6 +47,7 @@ const MessageCard = ({ message }: IMessageCardProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [alertDialogOpen, setAlertDialogOpen] = useState(false);
   const [showIcon, setShowIcon] = useState(false);
+  const { toast } = useToast();
   // console.log({ reciver });
 
   const handleOpenPopover = (open: boolean) => {
@@ -61,11 +55,14 @@ const MessageCard = ({ message }: IMessageCardProps) => {
   };
   const handleMessageDelete = async () => {
     try {
-      console.log({ message });
       await deleteMessage({
         messageId: message._id,
         chatId: message.chat._id,
       }).unwrap();
+      toast({
+        title: "Message Deleted",
+        description: "Your message has been deleted",
+      });
     } catch (error) {
       console.log(error);
     }
@@ -80,27 +77,33 @@ const MessageCard = ({ message }: IMessageCardProps) => {
   // console.log(message.status, "message status");
   return (
     <div
-      className={`flex gap-2 items-center mb-3 ${own ? "justify-end" : ""}`}
+      className={`flex gap-2 items-center mb-3 max-w-full ${
+        own ? "justify-end" : ""
+      }`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       // onFocus={handleMouseEnter}
     >
       {own && (
         <Popover open={isOpen} onOpenChange={handleOpenPopover}>
-          {showIcon && (
-            <PopoverTrigger>
-              <div className="icon dark:hover:bg-white/10 hover:bg-black/10">
-                <BsThreeDots className="dark:text-white/60" />
-              </div>
-            </PopoverTrigger>
-          )}
+          <PopoverTrigger>
+            <div
+              className={`icon dark:hover:bg-white/10 hover:bg-black/10 duration-75 transition-opacity ${
+                showIcon
+                  ? "opacity-100 pointer-events-auto"
+                  : "opacity-0 pointer-events-none"
+              }`}
+            >
+              <BsThreeDots className="dark:text-white/60" />
+            </div>
+          </PopoverTrigger>
 
           <PopoverContent>
             <div className="flex flex-col gap-3">
               <AlertDialog open={alertDialogOpen}>
                 <AlertDialogTrigger onClick={() => setAlertDialogOpen(true)}>
                   <div
-                    className={` flex gap-2 cursor-pointer items-center dark:hover:bg-white/10 hover:bg-black/10 p-2 rounded-md`}
+                    className={` flex gap-2 cursor-pointer items-center hover-color p-2 rounded-md`}
                   >
                     <FaTrashAlt className="" />
                     <p>Delete</p>
@@ -109,7 +112,7 @@ const MessageCard = ({ message }: IMessageCardProps) => {
                 <AlertDialogContent className="w-[calc(100%-40px)] md:w-full">
                   <AlertDialogHeader>
                     <AlertDialogTitle className="font-bold">
-                      Delete Post
+                      Delete Message
                     </AlertDialogTitle>
                     <AlertDialogDescription>
                       Are you sure? This action cannot be undone.
@@ -153,7 +156,7 @@ const MessageCard = ({ message }: IMessageCardProps) => {
       <div
         className={`${
           own && "bg-primary text-white dark:bg-secondary"
-        } bg-black/10  dark:bg-background  rounded-full py-1 px-3`}
+        } bg-black/10  dark:bg-background  rounded-full py-2 px-4 break-words `}
       >
         {/* 
                 message title contain user name and time of message
@@ -162,7 +165,7 @@ const MessageCard = ({ message }: IMessageCardProps) => {
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger className="cursor-auto">
-              <div className={`flex gap-2 items-center `}>
+              <div className={`flex gap-2 items-center`}>
                 {message.status === "sent" && own && <FaCheck />}
                 {message.status === "delivered" && own && (
                   <IoCheckmarkDoneSharp />
@@ -171,7 +174,7 @@ const MessageCard = ({ message }: IMessageCardProps) => {
                   <IoCheckmarkDoneSharp className="text-blue-500" />
                 )}
 
-                <p className="text-lg">{message.content}</p>
+                <p className="text-lg text-start">{message.content}</p>
               </div>
             </TooltipTrigger>
             <TooltipContent>

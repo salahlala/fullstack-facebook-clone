@@ -36,7 +36,7 @@ const FriendList = ({
           <div className="w-[150px] h-[150px] bg-secondary rounded-md">
             <Link to={`/app/profile/${user._id}`}>
               <img
-                src={user.profileImg?.url || defaultProfile}
+                src={user.profileImg?.url}
                 alt={user.fullName}
                 className="w-full h-full rounded-md"
               />
@@ -45,9 +45,9 @@ const FriendList = ({
         ) : (
           <Link to={`/app/profile/${user._id}`} className="relative">
             <Avatar>
-              <AvatarImage src={user.profileImg?.url || defaultProfile} />
+              <AvatarImage src={user.profileImg?.url} />
               <AvatarFallback>
-                {user.username.slice(0, 1).toUpperCase()}
+                {user.fullName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {pos === "contact" && <OnlineStatus reciver={user._id} />}

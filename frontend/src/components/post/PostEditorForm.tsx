@@ -18,7 +18,8 @@ import { Textarea } from "@components/ui/textarea";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { useToast } from "@components/ui/use-toast";
-
+import { Label } from "@components/ui/label";
+import { FaUpload } from "react-icons/fa6";
 interface PostEditorFormProps {
   isDialogOpen?: boolean;
   title: string;
@@ -27,6 +28,7 @@ interface PostEditorFormProps {
   oldImage?: string;
   postId?: string;
   setOldImage?: React.Dispatch<React.SetStateAction<string>>;
+  setIsEdit?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const PostEditorForm = ({
   isDialogOpen,
@@ -36,9 +38,11 @@ const PostEditorForm = ({
   oldText,
   oldImage,
   setOldImage,
+  setIsEdit,
 }: PostEditorFormProps) => {
   const [text, setText] = useState(oldText || "");
   const [image, setImage] = useState<File | null>(null);
+  const [currentImage, setCurrentImage] = useState("");
   const { toast } = useToast();
   const dispatch = useAppDispatch();
   const [createPost, { isLoading, isError, error }] = useCreatePostMutation();
@@ -55,11 +59,13 @@ const PostEditorForm = ({
     const file = e.target.files?.[0] || null;
     if (file) {
       setImage(file);
+      setCurrentImage(URL.createObjectURL(file));
     }
   };
   const handleChangeDialog = (open: boolean) => {
     if (!open && !loading) {
       dispatch(closeDialog());
+      setIsEdit && setIsEdit(false);
     }
   };
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -91,6 +97,7 @@ const PostEditorForm = ({
         // console.log(response, "post created");
       }
       dispatch(closeDialog());
+      setIsEdit && setIsEdit(false);
       setText("");
     } catch (error) {
       console.log("error in editor post", error);
@@ -105,6 +112,12 @@ const PostEditorForm = ({
       return <p className="text-red-500">{messsage}</p>;
     }
     return <></>;
+  };
+
+  const cancelUploadImg = () => {
+    if (loading) return;
+    setCurrentImage("");
+    setImage(null);
   };
   return (
     <Dialog open={isDialogOpen} onOpenChange={handleChangeDialog}>
@@ -134,35 +147,139 @@ const PostEditorForm = ({
                   className="w-full h-[200px] object-cover"
                 />
                 <div
-                  className="absolute top-2 right-2 bg-background py-1 px-2 rounded-md cursor-pointer"
+                  className="absolute top-2 right-2 icon text-xl font-semibold bg-background cursor-pointer"
                   onClick={() => setOldImage && setOldImage("")}
                 >
                   x
                 </div>
               </div>
             )}
-            {type == "edit" && !oldImage && (
+            {/* {type == "edit" && !oldImage && (
+              <div className="">
+                {!currentImage && (
+                  <Label
+                    htmlFor="image"
+                    className={`cursor-pointer block  text-center mb-3 `}
+                  >
+                    <div className="text-center bg-background hover-color px-4 py-3 rounded-md flex justify-center items-center gap-2 font-bold">
+                      <FaUpload />
+                      <p>Upload image</p>
+                    </div>
+                  </Label>
+                )}
+                {currentImage && (
+                  <div className="relative">
+                    <img
+                      src={currentImage}
+                      alt=""
+                      className="w-full h-[300px] object-cover"
+                    />
+                    <span
+                      onClick={cancelUploadImg}
+                      className={` absolute top-0 right-0 icon text-lg font-medium bg-background cursor-pointer`}
+                    >
+                      x
+                    </span>
+                  </div>
+                )}
+
+                <Input
+                  type="file"
+                  name="image"
+                  id="image"
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                  accept="image/*"
+                  disabled={loading}
+                />
+              </div>
+            )} */}
+
+            <div className="">
+              {!currentImage && !oldImage && (
+                <Label
+                  htmlFor="image"
+                  className="cursor-pointer block text-center mb-3"
+                >
+                  <div className="text-center bg-background hover-color px-4 py-3 rounded-md flex justify-center items-center gap-2 font-bold">
+                    <FaUpload />
+                    <p>Upload image</p>
+                  </div>
+                </Label>
+              )}
+              {currentImage && (
+                <div className="relative">
+                  <img
+                    src={currentImage}
+                    alt=""
+                    className="w-full h-[200px] object-cover"
+                  />
+                  <span
+                    onClick={cancelUploadImg}
+                    className="absolute top-2 right-2 icon text-lg font-medium bg-background cursor-pointer"
+                  >
+                    x
+                  </span>
+                </div>
+              )}
+
               <Input
                 type="file"
                 name="image"
-                className=""
+                id="image"
+                className="hidden"
                 onChange={handleFileInputChange}
                 accept="image/*"
                 disabled={loading}
               />
-            )}
-            {type == "create" && (
-              <Input
-                type="file"
-                name="image"
-                className=""
-                onChange={handleFileInputChange}
-                accept="image/*"
-                disabled={loading}
-              />
-            )}
+            </div>
+
+            {/* {type == "create" && (
+              <div className="">
+                {!currentImage && (
+                  <Label
+                    htmlFor="image"
+                    className="cursor-pointer block text-center mb-3"
+                  >
+                    <div className="text-center bg-background hover-color px-4 py-3 rounded-md flex justify-center items-center gap-2 font-bold">
+                      <FaUpload />
+                      <p>Upload image</p>
+                    </div>
+                  </Label>
+                )}
+                {currentImage && (
+                  <div className="relative">
+                    <img
+                      src={currentImage}
+                      alt=""
+                      className="w-full h-[200px] object-cover"
+                    />
+                    <span
+                      onClick={cancelUploadImg}
+                      className="absolute top-0 right-0 icon text-lg font-medium bg-background cursor-pointer"
+                    >
+                      x
+                    </span>
+                  </div>
+                )}
+
+                <Input
+                  type="file"
+                  name="image"
+                  id="image"
+                  className="hidden"
+                  onChange={handleFileInputChange}
+                  accept="image/*"
+                  disabled={loading}
+                />
+              </div>
+            )} */}
             {handleDisplayErrorMessage()}
-            <Button disabled={loading || (!text && !image)} className="button ">
+            <Button
+              disabled={loading || (!text && !image)}
+              className="button !mt-2"
+              type="submit"
+            >
               {loading
                 ? "Loading..."
                 : type == "edit"
