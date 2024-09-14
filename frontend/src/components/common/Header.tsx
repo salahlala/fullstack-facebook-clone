@@ -36,14 +36,15 @@ import { FaUserFriends } from "react-icons/fa";
 import { FaFacebookMessenger } from "react-icons/fa6";
 import { MdLogout, MdSettings, MdPerson } from "react-icons/md";
 import { BsFillBellFill } from "react-icons/bs";
-import { IoMdSearch } from "react-icons/io";
+import { IoIosSearch } from "react-icons/io";
+
 const Header = () => {
   const [logout] = useLogoutMutation();
   const { data } = useGetMeQuery();
   const { data: notifications } = useGetNotificationsQuery();
   const [markNotificationAsRead] = useMarkNotificationAsReadMutation();
   const [isAnimated, setIsAnimated] = useState(false);
-  const [name, setName] = useState("");
+  const [queryName, setQueryName] = useState("");
   const [debonceName, setDebonceName] = useState("");
   const [open, setOpen] = useState(false);
 
@@ -51,7 +52,7 @@ const Header = () => {
   const { data: usersData, isLoading: isSearchLoading } = useSearchUsersQuery(
     debonceName,
     {
-      skip: debonceName.length < 1,
+      skip: debonceName.trim().length === 0,
     }
   );
 
@@ -76,11 +77,15 @@ const Header = () => {
   };
 
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebonceName(name);
-    }, 500);
-    return () => clearTimeout(handler);
-  }, [name]);
+    if (queryName.trim().length == 0) {
+      setDebonceName("");
+    } else {
+      const handler = setTimeout(() => {
+        setDebonceName(queryName);
+      }, 500);
+      return () => clearTimeout(handler);
+    }
+  }, [queryName]);
 
   const handleDialogChange = (open: boolean) => {
     setOpen(open);
@@ -92,11 +97,12 @@ const Header = () => {
   useEffect(() => {
     setOpen(false);
     // setSheetOpen(false);
-    setName("");
+    setQueryName("");
+    setDebonceName("");
   }, [location]);
 
   useEffect(() => {
-    if (openNotification && notifications?.length) {
+    if (openNotification && notifications?.unreadCount) {
       markNotificationAsRead();
     }
     setIsAnimated(true);
@@ -105,47 +111,40 @@ const Header = () => {
     }, 500);
 
     return () => clearTimeout(timeout);
-  }, [notifications?.length, markNotificationAsRead, openNotification]);
+  }, [notifications?.unreadCount, markNotificationAsRead, openNotification]);
 
   return (
     <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between md:gap-7 gap-2  ">
       <Link to="/app">
         <h1 className="text-2xl font-bold ">facebook</h1>
       </Link>
-      {/* <div className="xl:hidden flex">
-        <Sheet open={sheetOpen} onOpenChange={handleSheetChange}>
-          <SheetTrigger>
-            <FaBars />
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Are you absolutely sure?</SheetTitle>
-              <SheetDescription>
-                <SuggestedUser />
-              </SheetDescription>
-            </SheetHeader>
-          </SheetContent>
-        </Sheet>
-      </div> */}
+
       <Dialog open={open} onOpenChange={handleDialogChange}>
         <DialogTrigger className=" ">
-          <div className="md:block hidden text-start bg-background hover:bg-secondary transition-colors duration-100 rounded-md px-4 py-1  md:w-[200px]">
-            search
+          <div className="md:flex items-center justify-between hidden text-start bg-background hover:bg-secondary transition-colors duration-75 rounded-full px-4 py-1  md:w-[200px]">
+            <p>Search</p>
+            <IoIosSearch className="text-lg" />
           </div>
-          <IoMdSearch className="text-2xl md:hidden" />
+          <IoIosSearch className="text-2xl md:hidden" />
         </DialogTrigger>
         <DialogContent
           className="md:w-full w-[calc(100%-40px)] "
           aria-describedby={undefined}
         >
-          <DialogTitle className="text-center">Search</DialogTitle>
-          <Input
-            placeholder="Search for users"
-            className="w-full text-secondary-foreground bg-card mt-4"
-            onChange={(e) => setName(e.target.value)}
-          />
+          <DialogTitle className="text-center text-xl">Search</DialogTitle>
+          <div className="relative">
+            <Input
+              placeholder="Search for users"
+              className="w-full text-secondary-foreground bg-card px-3 py-1 rounded-full"
+              onChange={(e) => setQueryName(e.target.value)}
+            />
+            <IoIosSearch className="text-lg absolute right-2 top-1/2 -translate-y-1/2 w-[30px] h-[30px] bg-card" />
+          </div>
+
           <div className="mt-4 resultl p-4 max-h-[300px] overflow-auto hide-scrollbar ">
-            <SearchList users={usersData} isSearchLoading={isSearchLoading} />
+            {queryName.trim().length > 0 && (
+              <SearchList users={usersData} isSearchLoading={isSearchLoading} />
+            )}
           </div>
         </DialogContent>
       </Dialog>
@@ -168,7 +167,7 @@ const Header = () => {
       </div> */}
       <div className="flex gap-3 items-center justify-end md:w-full text-secondary-foreground">
         <Link to="/app/messenger">
-          <div className="icon hover:bg-secondary transition-colors">
+          <div className="icon">
             <FaFacebookMessenger className="" />
           </div>
         </Link>
@@ -178,22 +177,20 @@ const Header = () => {
           open={openNotification}
         >
           <PopoverTrigger>
-            <div className="icon relative hover:bg-secondary transition-colors">
+            <div className="icon relative ">
               <BsFillBellFill className="" />
 
               <div
                 className={`${isAnimated ? "animate-bounce" : ""} ${
-                  !notifications?.length ? "hidden" : ""
+                  !notifications?.unreadCount ? "hidden" : ""
                 } absolute w-[15px] h-[15px] text-white grid place-content-center bg-blue-800 rounded-full top-0 right-0`}
               >
-                {notifications?.length}
+                {notifications?.unreadCount}
               </div>
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className={`${
-              !notifications?.notifications?.length ? "hidden" : ""
-            } max-h-[400px] overflow-y-auto hide-scrollbar`}
+            className={`max-h-[400px] overflow-y-auto hide-scrollbar`}
           >
             {notifications?.notifications.map((notification) => (
               <Notification
@@ -201,6 +198,10 @@ const Header = () => {
                 notification={notification}
               />
             ))}
+
+            {!notifications?.notifications.length && (
+              <p className="text-center">No notifications</p>
+            )}
           </PopoverContent>
         </Popover>
 
@@ -209,7 +210,7 @@ const Header = () => {
             <Avatar>
               <AvatarImage src={data?.profileImg?.url} />
               <AvatarFallback>
-                {data?.username.slice(0, 1).toUpperCase()}
+                {data?.fullName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             {/* <div className="w-[30px] h-[30px] bg-black rounded-full "></div> */}
