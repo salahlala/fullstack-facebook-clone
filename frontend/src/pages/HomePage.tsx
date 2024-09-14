@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useGetFollowingPostsQuery } from "@features/api/postApiSlice";
 import { useGetMeQuery } from "@features/api/userApiSlice";
 import { useAppSelector, useAppDispatch } from "@store/hooks";
@@ -10,6 +10,7 @@ import {
 } from "@utils/postsCache";
 import type { TPost } from "@typesFolder/postType";
 import type { TUser } from "@typesFolder/authType";
+
 
 import Post from "@components/post/Post";
 import Loader from "@components/Loader";
@@ -33,41 +34,85 @@ import { FaUserFriends } from "react-icons/fa";
 import { MdGroups2 } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
 import { BsThreeDots } from "react-icons/bs";
+import { ImSpinner2 } from "react-icons/im";
 const HomePage = () => {
-  const { data: posts, isLoading } = useGetFollowingPostsQuery();
-
-  // const { data: posts, isLoading, isError, error } = useGetPostsQuery();
+  const [limit, setLimit] = useState(10);
+  const { data, isLoading, isFetching } = useGetFollowingPostsQuery({
+    limit,
+  });
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const lastPostRef = useRef<HTMLDivElement | null>(null);
 
   const { data: user } = useGetMeQuery();
 
   const { socket } = useAppSelector((state) => state.socket);
   const dispatch = useAppDispatch();
+
+  const handleLoadMore = () => {
+    // increaseLimit();
+    setLimit((prev) => prev + 5);
+    // setSkip((prevSkip) => prevSkip + limit); // Increase skip to load more posts
+  };
   useEffect(() => {
-    if (!socket) return;
+    localStorage.setItem("limit", limit.toString());
+  }, [limit]);
+
+  const observeLastPost = useCallback(
+    (node: HTMLDivElement) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        console.log("disconnect");
+      }
+      if (data?.hasMorePosts) {
+        console.log("observe last post");
+        observerRef.current = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            handleLoadMore();
+          }
+        });
+        if (node) {
+          observerRef.current.observe(node);
+        }
+      }
+    },
+    [data?.hasMorePosts]
+  );
+
+  useEffect(() => {
+    if (lastPostRef.current) {
+      observeLastPost(lastPostRef.current);
+    }
+  }, [observeLastPost, data?.posts]);
+
+  useEffect(() => {
+    if (!socket) {
+      console.log("no socket");
+      return;
+    }
 
     const handleDeletePost = (data: { postId: string }) => {
       console.log("post deleted");
-      updatePostDeleteCache(dispatch, data.postId);
+      updatePostDeleteCache(dispatch, data.postId, limit);
     };
     const handleUpdatePost = (updatedPost: TPost) => {
       console.log("post updated");
-      updatePostUpdateCache(dispatch, updatedPost);
+      updatePostUpdateCache(dispatch, updatedPost, limit);
     };
     const handleCreatePost = (newPost: TPost) => {
-      console.log("post created");
-      updateNewPostCache(dispatch, newPost);
+      console.log("post created", limit);
+      updateNewPostCache(dispatch, newPost, limit);
     };
 
+    socket.on("create-post", handleCreatePost);
     socket.on("delete-post", handleDeletePost);
     socket.on("update-post", handleUpdatePost);
-    socket.on("create-post", handleCreatePost);
 
     return () => {
       socket.off("delete-post", handleDeletePost);
       socket.off("update-post", handleUpdatePost);
       socket.off("create-post", handleCreatePost);
     };
-  }, [socket, dispatch]);
+  }, [socket, dispatch, limit]);
 
   return (
     <div className="min-h-screen relative bg-background">
@@ -190,11 +235,40 @@ const HomePage = () => {
               <Loader />
             </div>
           ) : (
-            <div className=" flex gap-3 flex-col ">
-              {posts?.map((post: TPost) => (
-                <Post key={post._id} post={post} />
-              ))}
-            </div>
+            <>
+              {data?.posts?.length ? (
+                <>
+                  <div className=" flex gap-3 flex-col ">
+                    {data?.posts?.map((post: TPost, index) => (
+                      <div
+                        key={post._id}
+                        ref={
+                          index === data.posts.length - 1 ? lastPostRef : null
+                        }
+                      >
+                        <Post key={post._id} post={post} />
+                      </div>
+                    ))}
+                  </div>
+                  {isFetching && (
+                    <ImSpinner2 className="animate-spin text-center flex justify-center items-center mx-auto my-5" />
+                  )}
+                  {/* {data.hasMorePosts && (
+                    <Button
+                      className="button rounded-md flex justify-center items-center w-fit mx-auto"
+                      onClick={handleLoadMore}
+                      disabled={isFetching}
+                    >
+                      {isFetching ? "Loading more..." : "Load More"}
+                    </Button>
+                  )} */}
+                </>
+              ) : (
+                <div className="text-center font-medium">
+                  start following people to see posts
+                </div>
+              )}
+            </>
           )}
         </div>
         {/* right */}
