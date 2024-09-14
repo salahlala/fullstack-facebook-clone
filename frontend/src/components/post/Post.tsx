@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 import type { TComment, TPost } from "@typesFolder/postType";
 import type { TNotification } from "@typesFolder/notificationType";
@@ -10,11 +10,9 @@ import { useGetMeQuery } from "@features/api/userApiSlice";
 import {
   useLazyGetLikedPostDetailsQuery,
   useLazyGetPostCommentsQuery,
-  useGetPostCommentsQuery,
   useDeletePostMutation,
   useAddLikeMutation,
   useAddCommentMutation,
-  postSlice,
 } from "@features/api/postApiSlice";
 import { useGetNotificationsQuery } from "@features/api/notificationApiSlice";
 
@@ -42,8 +40,6 @@ import { useToast } from "@components/ui/use-toast";
 import { FaRegCommentAlt } from "react-icons/fa";
 import { AiFillLike } from "react-icons/ai";
 import { RiShareForwardLine } from "react-icons/ri";
-import { useInView } from "react-intersection-observer";
-import { apiSlice } from "@features/api/apiSlice";
 
 interface postProps {
   post: TPost;
@@ -70,11 +66,14 @@ const Post = ({ post, styles }: postProps) => {
   const dialogData = useAppSelector((state) => state.dialog[post._id]);
   const commentDialogOpen = dialogData?.addCommentDialog || false;
   const { socket } = useAppSelector((state) => state.socket);
-  const { ref, inView } = useInView({ triggerOnce: true, threshold: 0.5 });
 
-  const [fetchedComments, setFetchedComments] = useState<Set<string>>(
-    new Set()
+  const likedPostsSet = useMemo(
+    () => new Set(data?.likedPosts?.map((id) => id.toString())),
+    [data?.likedPosts]
   );
+  const isPostLiked = likedPostsSet.has(post._id.toString());
+  const [isOptimisticLiked, setIsOptimisticLiked] = useState(isPostLiked);
+
   useEffect(() => {
     if (!socket) return;
     const handleNewComment = (data: { postId: string; comment: TComment }) => {
@@ -128,6 +127,12 @@ const Post = ({ post, styles }: postProps) => {
       socket.off("new-notification", handleNewNotification);
     };
   }, [socket, post._id, getLikedPostDetails, refetchNotifications, dispatch]);
+
+  useEffect(() => {
+    // Sync the optimistic state with the actual data once it loads
+    setIsOptimisticLiked(isPostLiked);
+  }, [isPostLiked]);
+
   // console.log(data,'form the post component');
   const handleDeletePost = async () => {
     try {
@@ -140,10 +145,12 @@ const Post = ({ post, styles }: postProps) => {
     }
   };
   const handleAddLike = async () => {
+    setIsOptimisticLiked(!isOptimisticLiked);
     try {
       await addLike({ id: post._id }).unwrap();
     } catch (error) {
       console.log(error);
+      setIsOptimisticLiked(isOptimisticLiked);
     }
   };
 
@@ -154,7 +161,6 @@ const Post = ({ post, styles }: postProps) => {
     } else {
       dispatch(closeDialog({ postId: post._id, dialogType: "likesDialog" }));
     }
-    // if (!open) dispatch(closeDialog(post._id));
   };
   const handleOpenCommentDetailsDialog = async (open: boolean) => {
     if (open) {
@@ -198,23 +204,21 @@ const Post = ({ post, styles }: postProps) => {
 
     // if (!open) dispatch(closeDialog("comment"));
   };
-
   // get post comments
-  useEffect(() => {
-    if (inView && !fetchedComments.has(post._id)) {
-      getPostComments(post._id);
-      getLikedPostDetails(post._id);
-      setFetchedComments((prev) => new Set(prev).add(post._id));
-    }
-  }, [post, inView, getPostComments, getLikedPostDetails, fetchedComments]);
+  // useEffect(() => {
+  //   getPostComments(post._id);
+  //   getLikedPostDetails(post._id);
+  // }, [post, getPostComments, getLikedPostDetails]);
 
+  useEffect(() => {
+    getPostComments(post._id);
+    getLikedPostDetails(post._id);
+  }, [post._id, getPostComments, getLikedPostDetails]);
   // console.log({ data, post }, "post");
   // const handleUpdatePost = async()=>{}
 
-  const likedPostsSet = new Set(data?.likedPosts?.map((id) => id.toString()));
-  const isPostLiked = likedPostsSet.has(post._id.toString());
   return (
-    <div className={`${styles} shadow-lg rounded-xl p-6 bg-card`} ref={ref}>
+    <div className={`${styles} shadow-lg rounded-xl p-6 bg-card`}>
       <PostHeader
         post={post}
         userId={data?._id}
@@ -239,17 +243,23 @@ const Post = ({ post, styles }: postProps) => {
       {/* <PostReactions /> */}
       <div className="flex items-center gap-2 lg:gap-4  pt-3 justify-between text-card-foreground">
         <div
-          className="flex items-center  gap-2 transition duration-75 hover:bg-black/10 dark:hover:bg-white/10 rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer"
+          className="flex items-center  gap-2  hover-color rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer"
           onClick={handleAddLike}
         >
-          <AiFillLike className={`${isPostLiked && "fill-blue-800"} h-5`} />
-          <p className={`${isPostLiked && "text-blue-800 font-semibold"} h-5`}>
+          <AiFillLike
+            className={`${isOptimisticLiked && "fill-blue-800"} h-5`}
+          />
+          <p
+            className={`${
+              isOptimisticLiked && "text-blue-800 font-semibold"
+            } h-5`}
+          >
             like
           </p>
         </div>
         <Dialog onOpenChange={handleOpenCommentDialog} open={commentDialogOpen}>
           <DialogTrigger>
-            <div className="flex items-center gap-2 transition duration-75  hover:bg-black/10 dark:hover:bg-white/10 rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer">
+            <div className="flex items-center gap-2   hover-color rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer">
               <FaRegCommentAlt className="h-5" />
               <p className="h-5">comment</p>
             </div>
@@ -282,7 +292,7 @@ const Post = ({ post, styles }: postProps) => {
             </DialogHeader>
           </DialogContent>
         </Dialog>
-        <div className="flex items-center  gap-2 transition duration-75  hover:bg-black/10 dark:hover:bg-white/10 rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer">
+        <div className="flex items-center  gap-2    hover-color rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer">
           <RiShareForwardLine className="h-5" />
           <p className="h-5">share</p>
         </div>
