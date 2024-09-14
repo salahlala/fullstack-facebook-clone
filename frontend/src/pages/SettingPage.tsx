@@ -3,6 +3,7 @@ import {
   useGetMeQuery,
   useUpdateUserProfileMutation,
 } from "@features/api/userApiSlice";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
@@ -10,6 +11,8 @@ import { Label } from "@components/ui/label";
 import { useToast } from "@components/ui/use-toast";
 
 import type { ApiError } from "@typesFolder/apiError";
+import { IoIosCamera } from "react-icons/io";
+
 const SettingPage = () => {
   const { data } = useGetMeQuery();
   const [updateUserProfile, { isLoading: isLoadingUpdate, isError, error }] =
@@ -18,6 +21,7 @@ const SettingPage = () => {
 
   const [img, setImg] = useState(data?.profileImg?.url || "");
   const [profileImg, setProfileImg] = useState<File | null>(null);
+  const [removeImg, setRemoveImg] = useState(false);
   const [formData, setFormData] = useState({
     username: data?.username || "",
     bio: data?.bio || "",
@@ -25,15 +29,6 @@ const SettingPage = () => {
   });
   const { username, email, bio } = formData;
 
-  // console.log(data.)
-
-  // const handleInputFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const file = e.target.files?.[0] || null;
-  //   if (file) {
-  //     setProfileImg(file);
-  //     setImg(URL.createObjectURL(file));
-  //   }
-  // };
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.name === "username") {
       setFormData({ ...formData, username: e.target.value });
@@ -60,16 +55,16 @@ const SettingPage = () => {
     formDataFile.append("username", username);
     formDataFile.append("email", email);
     formDataFile.append("bio", bio);
+    formDataFile.append("removeImg", removeImg ? "true" : "false");
     if (profileImg) {
       formDataFile.append("profileImg", profileImg);
     }
     try {
-      const data = await updateUserProfile(formDataFile).unwrap();
+      await updateUserProfile(formDataFile).unwrap();
       toast({
         // title: "Profile Updated",
         description: "Your profile has been updated",
       });
-      console.log(data, "from submit update");
     } catch (error) {
       console.log(error, "from submit update");
     }
@@ -82,15 +77,31 @@ const SettingPage = () => {
     }
     return <></>;
   };
+
+  const handleRemoveImg = () => {
+    setRemoveImg(true);
+    setImg("");
+  };
   return (
     <div className="">
       <div className="bg-card p-4 w-[350px] md:w-[400px] lg:w-[500px] min-h-[200px] rounded ">
-        <div className="mb-4 flex justify-center ">
-          <Label htmlFor="profileImg" className="cursor-pointer">
-            <Avatar className="w-[80px] h-[80px]">
+        <div className="mb-4 flex justify-center relative">
+          {img && data?.profileImg?.public_id && (
+            <span
+              onClick={handleRemoveImg}
+              className="cursor-pointer absolute top-0 left-1/2  -translate-y-1/2 -translate-x-1/2 icon font-medium text-2xl z-40"
+            >
+              x
+            </span>
+          )}
+          <Label htmlFor="profileImg" className="cursor-pointer relative ">
+            <div className="absolute top-0 left-0 w-full h-full transition  hover:opacity-100 opacity-0 hover-color z-20 rounded-full">
+              <IoIosCamera className="text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-2xl" />
+            </div>
+            <Avatar className="w-[80px] h-[80px] ">
               <AvatarImage className="w-full h-full" src={img} />
               <AvatarFallback className="text-xl">
-                {data?.username.slice(0, 1)}
+                {data?.fullName.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
           </Label>
