@@ -2,9 +2,10 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
 
-// import { useAppSelector } from "@store/hooks";
+import { useAppDispatch } from "@store/hooks";
 
 import { useSignupMutation } from "@features/api/authApiSlice";
+import { login as loginAction } from "@store/authSlice";
 import type { ApiError } from "@typesFolder/apiError";
 
 import { Button } from "@components/ui/button";
@@ -14,7 +15,7 @@ import { Label } from "@components/ui/label";
 const SignupPage = () => {
   const [signup, { isLoading, isError, error }] = useSignupMutation();
   // const { isLoggedIn } = useAppSelector((state) => state.auth);
-
+  const dispatch = useAppDispatch();
   const [formData, setFormData] = useState({
     username: "",
     fullName: "",
@@ -36,9 +37,16 @@ const SignupPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await signup(formData).unwrap();
+      const data = await signup(formData).unwrap();
       setFormData({ email: "", password: "", fullName: "", username: "" });
-      navigate("/login", { replace: true });
+      dispatch(
+        loginAction({
+          _id: data._id,
+          email: data.email,
+          username: data.username,
+        })
+      );
+      navigate("/app", { replace: true });
     } catch (error) {
       console.log(error, "error");
     }

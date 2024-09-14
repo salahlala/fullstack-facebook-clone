@@ -21,25 +21,32 @@ const ProtectLayout = () => {
 
   useEffect(() => {
     if (user) {
-      socket.current = io("ws://localhost:8000", {
-        query: {
-          userId: user._id,
-        },
-      });
-      dispatch(setSocket(socket.current));
-    }
-    const handleNewNotification = () => {
-      refetchNotifications();
-    };
-    socket.current?.on("getUsers", (users) => {
-      dispatch(setOnlineUsers(users));
-    });
+      if (!socket.current || socket.current?.disconnected) {
+        socket.current = io("ws://localhost:8000", {
+          query: {
+            userId: user._id,
+          },
+        });
+        dispatch(setSocket(socket.current));
+        const handleNewNotification = () => {
+          refetchNotifications();
+        };
+        socket.current.on("getUsers", (users) => {
+          dispatch(setOnlineUsers(users));
+        });
 
-    socket.current?.on("new-notification", handleNewNotification);
+        socket.current.on("new-notification", handleNewNotification);
+      }
+    }
 
     return () => {
-      socket.current?.disconnect();
-      socket.current?.off("new-notification", handleNewNotification);
+      if (socket.current) {
+        socket.current.disconnect();
+        socket.current.off("getUsers");
+        socket.current.off("new-notification");
+      }
+      // socket.current?.disconnect();
+      // socket.current?.off("new-notification", handleNewNotification);
     };
   }, [user, dispatch, refetchNotifications]);
 
