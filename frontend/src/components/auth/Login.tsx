@@ -29,16 +29,7 @@ const Login = () => {
     try {
       const data = await login(formData).unwrap();
       const { _id, email, username } = data.data;
-      // signIn({
-      //   auth: {
-      //     token: data.token,
-      //     // type: "Bearer",
-      //   },
-      //   userState: {
-      //     uid: _id,
-      //     name: username,
-      //   },
-      // });
+
       dispatch(
         loginAction({
           _id: _id,

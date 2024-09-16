@@ -177,7 +177,7 @@ const HomePage = () => {
         <div className="basis-1/4 p-4  w-full h-[calc(100vh-70px)] hidden xl:flex flex-col gap-4 sticky top-[70px] z-10 ">
           <div className="blur-bg h-full  bg-card rounded-md p-4">
             <div className="text flex items-center justify-between text-card-foreground">
-              <h1 className=" font-bold text-[45px]">facebook</h1>
+              <h1 className=" font-bold text-[40px]">RippleChat</h1>
               <div className="opacity-bg w-[30px] h-[30px]">
                 <BsThreeDots className="" />
               </div>
@@ -202,33 +202,12 @@ const HomePage = () => {
             </div>
           </div>
           <div className="blur-bg h-full text-card-foreground bg-card rounded-md p-4">
-            <h1>Gaming</h1>
+            <h1 className="font-bold text-2xl">Gaming</h1>
           </div>
         </div>
 
         {/* middle */}
         <div className="  basis-full xl:basis-1/2 w-full p-4 mt-[70px]">
-          <Carousel
-            className="z-0 mb-4 "
-            opts={{ slidesToScroll: 1, dragFree: true }}
-          >
-            <CarouselContent>
-              <CarouselItem className="basis-1/2 md:basis-1/4 ">
-                <Story />
-              </CarouselItem>
-              <CarouselItem className="basis-1/2 md:basis-1/4 ">
-                <Story />
-              </CarouselItem>
-              <CarouselItem className="basis-1/2 md:basis-1/4 ">
-                <Story />
-              </CarouselItem>
-              <CarouselItem className="basis-1/2 md:basis-1/4 ">
-                <Story />
-              </CarouselItem>
-            </CarouselContent>
-            {/* <CarouselPrevious /> */}
-            {/* <CarouselNext /> */}
-          </Carousel>
           <CreatePost />
           {isLoading ? (
             <div>

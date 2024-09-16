@@ -128,7 +128,7 @@ const Header = () => {
   return (
     <div className="fixed top-0 z-30 h-[70px] w-full p-4 bg-card shadow-md flex items-center justify-between md:gap-7 gap-2  ">
       <Link to="/app">
-        <h1 className="text-2xl font-bold ">facebook</h1>
+        <h1 className="text-2xl font-bold ">RippleChat</h1>
       </Link>
 
       <Dialog open={open} onOpenChange={handleDialogChange}>

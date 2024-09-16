@@ -24,6 +24,9 @@ import {
   updateUnlikeCache,
 } from "@utils/postsCache";
 
+import emojiData from "@emoji-mart/data";
+
+import Picker from "@emoji-mart/react";
 import PostHeader from "@components/post/PostHeader";
 import PostBody from "@components/post/PostBody";
 import { Button } from "@components/ui/button";
@@ -40,6 +43,7 @@ import { useToast } from "@components/ui/use-toast";
 import { FaRegCommentAlt } from "react-icons/fa";
 import { AiFillLike } from "react-icons/ai";
 import { RiShareForwardLine } from "react-icons/ri";
+import { MdEmojiEmotions } from "react-icons/md";
 
 interface postProps {
   post: TPost;
@@ -61,6 +65,7 @@ const Post = ({ post, styles }: postProps) => {
   const { toast } = useToast();
   const [commentText, setCommentText] = useState("");
   const [openCommentDialog, setOpenCommentDialog] = useState(false);
+  const [isEmojiPickerOpen, setIsEmojiPickerOpen] = useState(false);
 
   const dispatch = useAppDispatch();
   const dialogData = useAppSelector((state) => state.dialog[post._id]);
@@ -204,6 +209,19 @@ const Post = ({ post, styles }: postProps) => {
 
     // if (!open) dispatch(closeDialog("comment"));
   };
+
+  const handleEmojiClick = (emoji: any) => {
+    setCommentText((prev) => prev + emoji.native);
+  };
+  const handleShowEmojiPicker = () => {
+    setIsEmojiPickerOpen(true);
+  };
+
+  const handleEmojiPickerClose = () => {
+    if (isEmojiPickerOpen) {
+      setIsEmojiPickerOpen(false);
+    }
+  };
   // get post comments
   // useEffect(() => {
   //   getPostComments(post._id);
@@ -269,11 +287,11 @@ const Post = ({ post, styles }: postProps) => {
               <DialogTitle className="mb-4">Comments</DialogTitle>
               <form
                 action=""
-                className="flex flex-col gap-2"
+                className="flex flex-col gap-2 relative"
                 onSubmit={handleAddComment}
               >
                 <Textarea
-                  className="resize-none "
+                  className="resize-none px-3 py-2"
                   placeholder="Write a comment"
                   value={commentText}
                   onChange={handleCommentChange}
@@ -281,6 +299,24 @@ const Post = ({ post, styles }: postProps) => {
                   maxLength={500}
                   autoFocus
                 />
+                <MdEmojiEmotions
+                  onClick={handleShowEmojiPicker}
+                  className="hidden md:block icon absolute right-2  text-2xl cursor-pointer "
+                />
+                <div
+                  className={`hidden md:block absolute right-0 opacity-0 bottom-[50px] scale-0 ${
+                    isEmojiPickerOpen ? "opacity-100 scale-100" : ""
+                  } transition-opacity `}
+                >
+                  <Picker
+                    data={emojiData}
+                    onEmojiSelect={handleEmojiClick}
+                    onClickOutside={handleEmojiPickerClose}
+                    searchPosition={"none"}
+                    skinTonePosition={"none"}
+                  />
+                </div>
+
                 <Button
                   className="button"
                   type="submit"

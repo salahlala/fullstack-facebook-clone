@@ -54,7 +54,7 @@ const SignupPage = () => {
 
   return (
     <div className={` flex justify-center items-center flex-col `}>
-      <h1 className="text-center font-extrabold text-[55px] ">facebook</h1>
+      <h1 className="text-center font-extrabold text-[55px] ">RippleChat</h1>
       <div className="w-[340px] lg:w-[400px] rounded shadow-lg p-4 bg-card">
         <div className="text-center mb-2 text-card-foreground">
           <h2 className="font-bold text-2xl ">Create a new account</h2>
