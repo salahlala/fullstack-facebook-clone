@@ -1,5 +1,21 @@
 import { useState, useEffect, useMemo } from "react";
 
+import PostHeader from "@components/post/PostHeader";
+import PostBody from "@components/post/PostBody";
+import { Button } from "@components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@components/ui/dialog";
+import { Textarea } from "@components/ui/textarea";
+import { useToast } from "@components/ui/use-toast";
+
+import emojiData from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
+
 import type { TComment, TPost } from "@typesFolder/postType";
 import type { TNotification } from "@typesFolder/notificationType";
 import type { TUser } from "@typesFolder/authType";
@@ -23,22 +39,6 @@ import {
   updateAddLikeCache,
   updateUnlikeCache,
 } from "@utils/postsCache";
-
-import emojiData from "@emoji-mart/data";
-
-import Picker from "@emoji-mart/react";
-import PostHeader from "@components/post/PostHeader";
-import PostBody from "@components/post/PostBody";
-import { Button } from "@components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@components/ui/dialog";
-import { Textarea } from "@components/ui/textarea";
-import { useToast } from "@components/ui/use-toast";
 
 import { FaRegCommentAlt } from "react-icons/fa";
 import { AiFillLike } from "react-icons/ai";
@@ -222,11 +222,6 @@ const Post = ({ post, styles }: postProps) => {
       setIsEmojiPickerOpen(false);
     }
   };
-  // get post comments
-  // useEffect(() => {
-  //   getPostComments(post._id);
-  //   getLikedPostDetails(post._id);
-  // }, [post, getPostComments, getLikedPostDetails]);
 
   useEffect(() => {
     getPostComments(post._id);
@@ -256,9 +251,7 @@ const Post = ({ post, styles }: postProps) => {
           likedData={likedData}
         />
       </div>
-      {/* <PostHeader /> */}
-      {/* <PostContent /> */}
-      {/* <PostReactions /> */}
+
       <div className="flex items-center gap-2 lg:gap-4  pt-3 justify-between text-card-foreground">
         <div
           className="flex items-center  gap-2  hover-color rounded-md px-2 py-1 lg:px-4 lg:py-2 cursor-pointer"

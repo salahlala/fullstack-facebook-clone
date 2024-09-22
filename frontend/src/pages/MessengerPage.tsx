@@ -2,17 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import { Link } from "react-router-dom";
 
-import { useGetChatByIdQuery } from "@features/api/messengerApiSlice";
-
 import MessageCard from "@components/messenger/MessageCard";
 import OnlineStatus from "@components/messenger/OnlineStatus";
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+
+import data from "@emoji-mart/data";
+import Picker from "@emoji-mart/react";
 
 import { TMessage } from "@typesFolder/messengerType";
 
 import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { useGetChatByIdQuery } from "@features/api/messengerApiSlice";
 import {
   useSendMessageMutation,
   useGetMessagesQuery,
@@ -22,15 +24,13 @@ import {
   updateUnseenMessagesCache,
   updateNewMessagesCache,
   updateLastMessageCache,
-} from "@utils/cacheUtils";
+} from "@utils/messengerCache/index";
 
 import { ImSpinner2 } from "react-icons/im";
 import { IoMdClose } from "react-icons/io";
 import { IoMdSend } from "react-icons/io";
 import { MdEmojiEmotions } from "react-icons/md";
 
-import data from "@emoji-mart/data";
-import Picker from "@emoji-mart/react";
 const MessengerPage = () => {
   const { chatId } = useParams<{ chatId: string }>();
   // console.log({ chatId });
@@ -159,8 +159,6 @@ const MessengerPage = () => {
       messagesToUpdate: TMessage[];
     }) => {
       if (chatId == chat?._id) {
-        console.log("message is delivered and will update");
-
         updateMessagesStatusCache(dispatch, chatId, messagesToUpdate);
       }
     };
@@ -173,9 +171,7 @@ const MessengerPage = () => {
       socket.off("new-message", handleNewMessage);
       socket.off("readMessage", handleMessageRead);
       socket.off("messageDelivered", handleMessageDelivered);
-      // socket.off("message-sent", handleMessageSent);
     };
-    // scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [socket, chat, dispatch, chatId]);
 
   useEffect(() => {
@@ -205,7 +201,6 @@ const MessengerPage = () => {
           socket.emit("messageRead", { chatId, receiver: receiver._id });
 
           // Update unseen messages cache
-          console.log("message is read and update unseen cache");
           updateUnseenMessagesCache(dispatch, chatId);
         }
       }
@@ -219,8 +214,6 @@ const MessengerPage = () => {
       const isReciverOnline = onlineUsers.includes(receiver._id);
 
       if (filteredMessage?.length && isReciverOnline) {
-        console.log("user is online and send event");
-        // console.log("user is online from messenger page", receiver);
         if (socket) {
           socket.emit("user-status", {
             reciverId: receiver._id,
@@ -277,12 +270,6 @@ const MessengerPage = () => {
             </>
           )}
         </div>
-
-        {/* 
-            user img 
-            user status
-            close chat button
-          */}
       </div>
       <div className="messageContent my-3 p-4 overflow-y-auto basis-full hide-scrollbar ">
         {messagesLoading || chatLoading ? (
@@ -304,8 +291,6 @@ const MessengerPage = () => {
                   <div className=" rounded-full w-2.5 h-2.5 bg-black/10 dark:bg-white/10 animate-[typing-bounce_1s_infinite] delay-200" />
                   <div className=" rounded-full w-2.5 h-2.5 bg-black/10 dark:bg-white/10  animate-[typing-bounce_1s_infinite] delay-400" />
                 </div>
-                {/* <BsThreeDots className="animate-ping text-lg font-bold" /> */}
-                {/* <span className="animate-ping text-2xl font-bold">...</span> */}
               </div>
             )}
           </>

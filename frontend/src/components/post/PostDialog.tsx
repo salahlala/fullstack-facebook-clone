@@ -1,9 +1,3 @@
-import { Link } from "react-router-dom";
-import { useAppSelector } from "@store/hooks";
-import type { TPost, TComment } from "@typesFolder/postType";
-
-import { IoClose, IoReload } from "react-icons/io5";
-import { ImSpinner2 } from "react-icons/im";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +6,14 @@ import {
   DialogTrigger,
   DialogClose,
 } from "@components/ui/dialog";
-interface User {
-  _id: string;
-  username: string;
-  profileImg: string;
-}
+
+import type { TPost } from "@typesFolder/postType";
+
+import { useAppSelector } from "@store/hooks";
+
+import { IoClose } from "react-icons/io5";
+import { ImSpinner2 } from "react-icons/im";
+
 interface PostDialogProps<T> {
   post: TPost;
   onOpenChange: (open: boolean) => void;

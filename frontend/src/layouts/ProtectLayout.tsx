@@ -10,7 +10,7 @@ import { useAppDispatch, useAppSelector } from "@store/hooks";
 import {
   updateUnseenMessagesCache,
   updateLastMessageCache,
-} from "@utils/cacheUtils";
+} from "@utils/messengerCache/index";
 
 import Header from "@components/common/Header";
 import { Toaster } from "@components/ui/toaster";

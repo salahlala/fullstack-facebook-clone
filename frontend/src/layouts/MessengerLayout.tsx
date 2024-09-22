@@ -16,7 +16,7 @@ import {
   updateChatsCache,
   updateCreateChatCache,
   updateLastMessageCache,
-} from "@utils/cacheUtils";
+} from "@utils/messengerCache/index";
 
 import ChatCard from "@components/messenger/ChatCard";
 

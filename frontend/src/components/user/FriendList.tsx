@@ -1,14 +1,12 @@
 import { Link } from "react-router-dom";
-import type { TUser } from "@typesFolder/authType";
-
-import { useAppSelector } from "@store/hooks";
 
 import FollowButton from "@components/user/FollowButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import OnlineStatus from "@components/messenger/OnlineStatus";
 import CardHover from "@components/user/CardHover";
 
-import defaultProfile from "@assets/default-profile.png";
+import type { TUser } from "@typesFolder/authType";
+
 const FriendList = ({
   user,
   type,

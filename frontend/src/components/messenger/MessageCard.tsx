@@ -1,9 +1,5 @@
-import defaultImg from "@assets/default-profile.png";
 import { useState } from "react";
-import { useAppSelector } from "@store/hooks";
-import { useDeleteMessageMutation } from "@features/api/messengerApiSlice";
-
-import type { TMessage } from "@typesFolder/messengerType";
+import ReactTimeAgo from "react-time-ago";
 
 import {
   Popover,
@@ -22,7 +18,6 @@ import {
   AlertDialogTrigger,
 } from "@components/ui/alert-dialog";
 
-import ReactTimeAgo from "react-time-ago";
 import {
   Tooltip,
   TooltipContent,
@@ -30,6 +25,11 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 import { useToast } from "@components/ui/use-toast";
+
+import type { TMessage } from "@typesFolder/messengerType";
+
+import { useAppSelector } from "@store/hooks";
+import { useDeleteMessageMutation } from "@features/api/messengerApiSlice";
 
 import { IoCheckmarkDoneSharp } from "react-icons/io5";
 import { FaCheck } from "react-icons/fa6";

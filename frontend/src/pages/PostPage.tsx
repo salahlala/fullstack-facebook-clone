@@ -1,9 +1,7 @@
 import { useParams } from "react-router";
-import { useGetPostByIdQuery } from "@features/api/postApiSlice";
 import Post from "@components/post/Post";
-
 import type { ApiError } from "@typesFolder/apiError";
-
+import { useGetPostByIdQuery } from "@features/api/postApiSlice";
 import { ImSpinner2 } from "react-icons/im";
 const PostPage = () => {
   const { id } = useParams<{ id: string }>();

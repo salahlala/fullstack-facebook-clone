@@ -6,10 +6,13 @@ import {
   Navigate,
 } from "react-router-dom";
 
-import MainLayout from "@layouts/MainLayout";
-import ProtectLayout from "@layouts/ProtectLayout";
-import SettingLayout from "@layouts/SettingLayout";
-import MessengerLayout from "@layouts/MessengerLayout";
+import useAuth from "@hooks/useAuth";
+import { useAppSelector } from "@store/hooks";
+
+import ChangePassword from "@components/auth/ChangePassword";
+import ForgotPassword from "@components/auth/ForgotPassword";
+import ResetPassword from "@components/auth/ResetPassword";
+import SessionDialog from "@components/auth/SessionDialog";
 
 import Main from "@pages/Main";
 import LoginPage from "@pages/LoginPage";
@@ -21,13 +24,10 @@ import PostPage from "@pages/PostPage";
 import SuggestedUserPage from "@pages/SuggestedUserPage";
 import MessengerPage from "@pages/MessengerPage";
 
-import ChangePassword from "@components/auth/ChangePassword";
-import ForgotPassword from "@components/auth/ForgotPassword";
-import ResetPassword from "@components/auth/ResetPassword";
-import SessionDialog from "@components/auth/SessionDialog";
-
-import useAuth from "@hooks/useAuth";
-import { useAppSelector } from "@store/hooks";
+import MainLayout from "@layouts/MainLayout";
+import ProtectLayout from "@layouts/ProtectLayout";
+import SettingLayout from "@layouts/SettingLayout";
+import MessengerLayout from "@layouts/MessengerLayout";
 
 const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
   const { isLoading, user } = useAuth();

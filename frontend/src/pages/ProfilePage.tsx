@@ -1,5 +1,11 @@
 import { useParams } from "react-router-dom";
 
+import CreatePost from "@components/post/CreatePost";
+import Header from "@components/profile/Header";
+import Post from "@components/post/Post";
+import Loader from "@components/Loader";
+import FriendList from "@components/user/FriendList";
+
 import {
   useGetUserPostsQuery,
   useGetMyPostsQuery,
@@ -8,12 +14,6 @@ import {
   useGetMeQuery,
   useGetUserProfileQuery,
 } from "@features/api/userApiSlice";
-
-import CreatePost from "@components/post/CreatePost";
-import Header from "@components/profile/Header";
-import Post from "@components/post/Post";
-import Loader from "@components/Loader";
-import FriendList from "@components/user/FriendList";
 
 import { ImSpinner2 } from "react-icons/im";
 const ProfilePage = () => {
@@ -31,7 +31,6 @@ const ProfilePage = () => {
     ? myPostsQuery
     : userPostsQuery;
 
-  console.log(userProfile, "userProfile");
   return (
     <div className="min-h-screen pt-[70px] container mx-auto px-4">
       <Header
@@ -75,25 +74,9 @@ const ProfilePage = () => {
                     <FriendList key={user._id} user={user} column={true} />
                   ))}
             </div>
-
-            {/* {isMyProfile &&
-              userLogin?.followers?.map((user) => (
-                <FriendList key={user._id} user={user} />
-              ))}
-            {userProfile?.followers?.map((user) => (
-              <FriendList key={user._id} user={user} />
-            ))} */}
           </div>
         </div>
       </div>
-      {/* {isMyProfile && type === "create" && (
-        <PostEditorForm
-          isDialogOpen={isDialogOpen}
-          type="create"
-          title="Create"
-        />
-      )} */}
-      {/* <CreatePost /> */}
     </div>
   );
 };

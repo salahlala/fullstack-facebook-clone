@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useAppDispatch } from "@store/hooks";
-import { login } from "@store/authSlice";
-import { useResetPasswordMutation } from "@features/api/authApiSlice";
 
-import type { ApiError } from "@typesFolder/apiError";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Button } from "@components/ui/button";
+
+import type { ApiError } from "@typesFolder/apiError";
+
+import { useAppDispatch } from "@store/hooks";
+import { login } from "@store/authSlice";
+
+import { useResetPasswordMutation } from "@features/api/authApiSlice";
+
 const ResetPassword = () => {
   const [formData, setFormData] = useState({
     password: "",

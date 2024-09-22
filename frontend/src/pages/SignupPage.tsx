@@ -2,15 +2,14 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router";
 
-import { useAppDispatch } from "@store/hooks";
-
-import { useSignupMutation } from "@features/api/authApiSlice";
-import { login as loginAction } from "@store/authSlice";
-import type { ApiError } from "@typesFolder/apiError";
-
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
+import type { ApiError } from "@typesFolder/apiError";
+
+import { useAppDispatch } from "@store/hooks";
+import { login as loginAction } from "@store/authSlice";
+import { useSignupMutation } from "@features/api/authApiSlice";
 
 const SignupPage = () => {
   const [signup, { isLoading, isError, error }] = useSignupMutation();

@@ -1,28 +1,24 @@
 import { useEffect, useRef, useState, useCallback } from "react";
+
+import Post from "@components/post/Post";
+import Loader from "@components/Loader";
+import CreatePost from "@components/post/CreatePost";
+import FriendList from "@components/user/FriendList";
+import SuggestedUser from "@components/user/SuggestedUser";
+
+import type { TPost } from "@typesFolder/postType";
+import type { TUser } from "@typesFolder/authType";
+
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+
 import { useGetFollowingPostsQuery } from "@features/api/postApiSlice";
 import { useGetMeQuery } from "@features/api/userApiSlice";
-import { useAppSelector, useAppDispatch } from "@store/hooks";
 
 import {
   updatePostDeleteCache,
   updatePostUpdateCache,
   updateNewPostCache,
 } from "@utils/postsCache";
-import type { TPost } from "@typesFolder/postType";
-import type { TUser } from "@typesFolder/authType";
-
-
-import Post from "@components/post/Post";
-import Loader from "@components/Loader";
-import Story from "@components/story/Story";
-import CreatePost from "@components/post/CreatePost";
-import FriendList from "@components/user/FriendList";
-import SuggestedUser from "@components/user/SuggestedUser";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from "@components/ui/carousel";
 
 import {
   IoMdSettings,
@@ -30,6 +26,7 @@ import {
   IoMdVideocam,
   IoIosArrowDown,
 } from "react-icons/io";
+
 import { FaUserFriends } from "react-icons/fa";
 import { MdGroups2 } from "react-icons/md";
 import { GoVideo } from "react-icons/go";
@@ -49,9 +46,7 @@ const HomePage = () => {
   const dispatch = useAppDispatch();
 
   const handleLoadMore = () => {
-    // increaseLimit();
     setLimit((prev) => prev + 5);
-    // setSkip((prevSkip) => prevSkip + limit); // Increase skip to load more posts
   };
   useEffect(() => {
     localStorage.setItem("limit", limit.toString());
@@ -61,10 +56,8 @@ const HomePage = () => {
     (node: HTMLDivElement) => {
       if (observerRef.current) {
         observerRef.current.disconnect();
-        console.log("disconnect");
       }
       if (data?.hasMorePosts) {
-        console.log("observe last post");
         observerRef.current = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
             handleLoadMore();
@@ -85,21 +78,15 @@ const HomePage = () => {
   }, [observeLastPost, data?.posts]);
 
   useEffect(() => {
-    if (!socket) {
-      console.log("no socket");
-      return;
-    }
+    if (!socket) return;
 
     const handleDeletePost = (data: { postId: string }) => {
-      console.log("post deleted");
       updatePostDeleteCache(dispatch, data.postId, limit);
     };
     const handleUpdatePost = (updatedPost: TPost) => {
-      console.log("post updated");
       updatePostUpdateCache(dispatch, updatedPost, limit);
     };
     const handleCreatePost = (newPost: TPost) => {
-      console.log("post created", limit);
       updateNewPostCache(dispatch, newPost, limit);
     };
 
@@ -232,15 +219,6 @@ const HomePage = () => {
                   {isFetching && (
                     <ImSpinner2 className="animate-spin text-center flex justify-center items-center mx-auto my-5" />
                   )}
-                  {/* {data.hasMorePosts && (
-                    <Button
-                      className="button rounded-md flex justify-center items-center w-fit mx-auto"
-                      onClick={handleLoadMore}
-                      disabled={isFetching}
-                    >
-                      {isFetching ? "Loading more..." : "Load More"}
-                    </Button>
-                  )} */}
                 </>
               ) : (
                 <div className="text-center font-medium">

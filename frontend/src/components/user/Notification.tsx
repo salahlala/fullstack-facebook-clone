@@ -2,10 +2,6 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import ReactTimeAgo from "react-time-ago";
 
-import type { TNotification } from "@typesFolder/notificationType";
-
-import { useDeleteNotificationByIdMutation } from "@features/api/notificationApiSlice";
-
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,6 +19,10 @@ import {
   PopoverTrigger,
 } from "@components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+
+import type { TNotification } from "@typesFolder/notificationType";
+
+import { useDeleteNotificationByIdMutation } from "@features/api/notificationApiSlice";
 
 import { BsThreeDots } from "react-icons/bs";
 import { ImSpinner2 } from "react-icons/im";

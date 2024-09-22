@@ -1,8 +1,9 @@
+import FriendList from "@components/user/FriendList";
+
 import { useGetSuggestedUsersQuery } from "@features/api/userApiSlice";
 
 import type { TUser } from "@typesFolder/authType";
 
-import FriendList from "@components/user/FriendList";
 import { ImSpinner2 } from "react-icons/im";
 
 const SuggestedUser = () => {

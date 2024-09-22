@@ -1,10 +1,11 @@
 import { useLocation } from "react-router";
-import { useAppDispatch, useAppSelector } from "@store/hooks";
 
-import { openDialog } from "@store/uiSlice";
-import { useGetMeQuery } from "@features/api/userApiSlice";
 import PostEditorForm from "@components/post/PostEditorForm";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+
+import { useAppDispatch, useAppSelector } from "@store/hooks";
+import { openDialog } from "@store/uiSlice";
+import { useGetMeQuery } from "@features/api/userApiSlice";
 const CreatePost = ({ id }: { id?: string }) => {
   const dispatch = useAppDispatch();
   const { pathname } = useLocation();

@@ -1,11 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useCreateChatMutation } from "@features/api/messengerApiSlice";
-import { updateCreateChatCache } from "@utils/cacheUtils";
 
-import { useAppSelector, useAppDispatch } from "@store/hooks";
 import { Button } from "@components/ui/button";
 
 import type { TUser } from "@typesFolder/authType";
+
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { useCreateChatMutation } from "@features/api/messengerApiSlice";
+import { updateCreateChatCache } from "@utils/messengerCache/index";
+
 interface IMessageButtonProps {
   reciver: TUser;
 }

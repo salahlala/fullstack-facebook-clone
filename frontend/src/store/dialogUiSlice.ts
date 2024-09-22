@@ -1,21 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-// interface PostDialogState {
-//   likesDialog: boolean;
-//   commentDetailsDialog: boolean;
-//   addCommentDialog: boolean;
-// }
-// interface ProfileDialogState {
-//   followerDialog: boolean;
-//   followingDialog: boolean;
-// }
-// // Define a type for dialog state
-// type DialogState = {
-//   [postId: string]: PostDialogState; // For post-related dialogs
-// } & {
-//   [profileId: string]: ProfileDialogState; // For profile-related dialogs
-// };
-
 export interface DialogState {
   [postId: string]: {
     likesDialog: boolean;

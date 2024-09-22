@@ -1,8 +1,4 @@
 import { useState } from "react";
-import {
-  useGetMeQuery,
-  useUpdateUserProfileMutation,
-} from "@features/api/userApiSlice";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { Input } from "@components/ui/input";
@@ -11,6 +7,12 @@ import { Label } from "@components/ui/label";
 import { useToast } from "@components/ui/use-toast";
 
 import type { ApiError } from "@typesFolder/apiError";
+
+import {
+  useGetMeQuery,
+  useUpdateUserProfileMutation,
+} from "@features/api/userApiSlice";
+
 import { IoIosCamera } from "react-icons/io";
 
 const SettingPage = () => {

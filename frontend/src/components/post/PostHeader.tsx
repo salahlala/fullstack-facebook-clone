@@ -2,11 +2,6 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
 
-import { useAppSelector, useAppDispatch } from "@store/hooks";
-import { openDialog } from "@store/uiSlice";
-
-import { useDeletePostMutation } from "@features/api/postApiSlice";
-// components
 import PostEditorForm from "@components/post/PostEditorForm";
 import CardHover from "@components/user/CardHover";
 import {
@@ -28,15 +23,18 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { useToast } from "@components/ui/use-toast";
 
-// types
-import { TPost } from "@typesFolder/postType";
-// icons
+import type { TPost } from "@typesFolder/postType";
+
+import { useAppSelector, useAppDispatch } from "@store/hooks";
+import { openDialog } from "@store/uiSlice";
+
+import { useDeletePostMutation } from "@features/api/postApiSlice";
+
 import { BsThreeDots } from "react-icons/bs";
 import { MdEdit } from "react-icons/md";
 import { FaTrashAlt } from "react-icons/fa";
 import { ImSpinner2 } from "react-icons/im";
 
-import defaultProfile from "@assets/default-profile.png";
 interface PostHeaderProps {
   post: TPost;
   userId: string | undefined;

@@ -40,17 +40,6 @@ export const updateMessagesStatusCache = (
             console.log(`Updated message at index ${index}:`, message);
           }
         });
-
-        // Replace the old messages with the updated ones
-        // messagesToUpdate.forEach((updatedMessage: TMessage) => {
-        //   const index = draft.findIndex(
-        //     (msg) => msg._id.toString() === updatedMessage._id.toString()
-        //   );
-        //   console.log({ index }, "from the cache");
-        //   if (index !== -1) {
-        //     draft[index] = { ...draft[index], ...updatedMessage }; // Replace the old message with the updated one
-        //   }
-        // });
       }
     )
   );

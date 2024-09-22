@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-import type { TUser } from "@typesFolder/authType";
-
 import FollowButton from "@components/user/FollowButton";
 import FriendList from "@components/user/FriendList";
 import MessageButton from "@components/messenger/MessageButton";
-import { Button } from "@components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import {
   Dialog,
@@ -15,9 +12,10 @@ import {
   DialogTitle,
 } from "@components/ui/dialog";
 
+import type { TUser } from "@typesFolder/authType";
+
 import { ImSpinner2 } from "react-icons/im";
 
-import defaultProfile from "@assets/default-profile.png";
 interface IHeaderProps {
   id: string;
   userProfile: TUser | undefined;

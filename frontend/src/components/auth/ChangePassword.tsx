@@ -1,11 +1,14 @@
 import { useState } from "react";
-import { useUpdateUserProfileMutation } from "@features/api/userApiSlice";
-import { useToast } from "@components/ui/use-toast";
-import type { ApiError } from "@typesFolder/apiError";
 
+import { useToast } from "@components/ui/use-toast";
 import { Label } from "@components/ui/label";
 import { Input } from "@components/ui/input";
 import { Button } from "@components/ui/button";
+
+import type { ApiError } from "@typesFolder/apiError";
+
+import { useUpdateUserProfileMutation } from "@features/api/userApiSlice";
+
 const ChangePassword = () => {
   const [updateUserProfile, { isLoading, isError, error }] =
     useUpdateUserProfileMutation();

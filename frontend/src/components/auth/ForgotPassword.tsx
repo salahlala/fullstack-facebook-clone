@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useForgotPasswordMutation } from "@features/api/authApiSlice";
-import type { ApiError } from "@typesFolder/apiError";
-
 import { Input } from "@components/ui/input";
 import { Label } from "@components/ui/label";
 import { Button } from "@components/ui/button";
+
+import type { ApiError } from "@typesFolder/apiError";
+import { useForgotPasswordMutation } from "@features/api/authApiSlice";
+
 const ForgotPassword = () => {
   const [forgotPassword, { data, isLoading, isError, error }] =
     useForgotPasswordMutation();

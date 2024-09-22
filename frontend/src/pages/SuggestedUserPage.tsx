@@ -1,15 +1,14 @@
 import { Link } from "react-router-dom";
 
-import { useGetSuggestedUsersQuery } from "@features/api/userApiSlice";
-
 import FollowButton from "@components/user/FollowButton";
 import CardHover from "@components/user/CardHover";
 
 import type { TUser } from "@typesFolder/authType";
 
+import { useGetSuggestedUsersQuery } from "@features/api/userApiSlice";
+
 import { ImSpinner2 } from "react-icons/im";
 
-import defaultProfile from "@assets/default-profile.png";
 const SuggestedUserPage = () => {
   const { data, isLoading } = useGetSuggestedUsersQuery();
   return (
@@ -21,7 +20,7 @@ const SuggestedUserPage = () => {
             <div className="w-full mb-2 h-[150px] md:h-[200px] bg-secondary rounded-md">
               <Link to={`/app/profile/${user._id}`}>
                 <img
-                  src={user.profileImg?.url || defaultProfile}
+                  src={user.profileImg?.url}
                   className="w-full h-full rounded-md"
                   alt={user.username}
                 />

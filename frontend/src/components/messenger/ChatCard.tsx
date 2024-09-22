@@ -1,13 +1,16 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
-import OnlineStatus from "@components/messenger/OnlineStatus";
-import defaultImg from "@assets/default-profile.png";
-import type { TChat } from "@typesFolder/messengerType";
-import { useAppSelector } from "@store/hooks";
-import { useGetMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
-
 import { useNavigate } from "react-router-dom";
 import ReactTimeAgo from "react-time-ago";
 import { useInView } from "react-intersection-observer";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+import OnlineStatus from "@components/messenger/OnlineStatus";
+
+import type { TChat } from "@typesFolder/messengerType";
+
+import { useAppSelector } from "@store/hooks";
+import { useGetMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
+
+import defaultImg from "@assets/default-profile.png";
 
 interface IChatCardProps {
   chat: TChat;
@@ -19,8 +22,7 @@ const ChatCard = ({ chat }: IChatCardProps) => {
     skip: !inView,
   });
   const { user } = useAppSelector((state) => state.auth);
-  // const [getMessages, { data: messagesUnseen }] =
-  //   useLazyGetMessagesNotSeenQuery();
+
   const navigate = useNavigate();
   // const { toast } = useToast();
   const filterdData = chat.members.filter(
@@ -29,21 +31,7 @@ const ChatCard = ({ chat }: IChatCardProps) => {
   const handleOpenChat = async () => {
     navigate(`/app/messenger/${chat._id}`);
   };
-  // useEffect(() => {
-  //   if (inView) {
-  //     getMessages(chat._id);
-  //   }
-  // }, [inView, getMessages, chat._id]);
 
-  // const handleDeleteChat = async () => {
-  //   await deleteChat(chat._id);
-  //   navigate("/app/messenger");
-  //   toast({
-  //     title: "Success",
-  //     description: "Chat deleted successfully",
-  //   })
-  // }
-  // console.log({ chat: chat.lastMessage });
   return (
     <div
       onClick={handleOpenChat}

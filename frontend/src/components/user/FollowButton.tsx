@@ -1,3 +1,5 @@
+import { Button } from "@components/ui/button";
+
 import {
   useGetMeQuery,
   useFollowUserMutation,
@@ -5,7 +7,6 @@ import {
 import { updateNewPostCache } from "@utils/postsCache";
 import { useAppDispatch } from "@store/hooks";
 
-import { Button } from "@components/ui/button";
 import { ImSpinner2 } from "react-icons/im";
 
 const FollowButton = ({ id }: { id: string }) => {

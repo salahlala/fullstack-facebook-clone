@@ -1,9 +1,5 @@
 import { useState } from "react";
-import { useAppSelector } from "@store/hooks";
-import { useDeleteCommentMutation } from "@features/api/postApiSlice";
 
-import type { TPost, TComment } from "@typesFolder/postType";
-import type { TUser } from "@typesFolder/authType";
 import FollowButton from "@components/user/FollowButton";
 import PostDialog from "@components/post/PostDialog";
 import CardHover from "@components/user/CardHover";
@@ -24,6 +20,12 @@ import {
   AlertDialogTrigger,
 } from "@components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
+
+import type { TPost, TComment } from "@typesFolder/postType";
+import type { TUser } from "@typesFolder/authType";
+
+import { useAppSelector } from "@store/hooks";
+import { useDeleteCommentMutation } from "@features/api/postApiSlice";
 
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 import { FaTrashAlt } from "react-icons/fa";

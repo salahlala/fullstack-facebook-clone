@@ -2,23 +2,9 @@ import { useNavigate } from "react-router";
 import { Link, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import { useAppDispatch } from "@store/hooks";
-import { logout as logoutAction } from "@store/authSlice";
-
-import { apiSlice } from "@features/api/apiSlice";
-import { useLogoutMutation } from "@features/api/authApiSlice";
-import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userApiSlice";
-import {
-  useGetNotificationsQuery,
-  useMarkNotificationAsReadMutation,
-} from "@features/api/notificationApiSlice";
-import { useGetAllMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
-
 import SearchList from "@components/user/SearchList";
 import Notification from "@components/user/Notification";
-
 import { Input } from "@components/ui/input";
-
 import {
   Dialog,
   DialogTrigger,
@@ -32,6 +18,18 @@ import {
 } from "@components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
 import { ModeToggle } from "@components/mode-toggle";
+
+import { useAppDispatch } from "@store/hooks";
+import { logout as logoutAction } from "@store/authSlice";
+
+import { apiSlice } from "@features/api/apiSlice";
+import { useLogoutMutation } from "@features/api/authApiSlice";
+import { useGetMeQuery, useSearchUsersQuery } from "@features/api/userApiSlice";
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationAsReadMutation,
+} from "@features/api/notificationApiSlice";
+import { useGetAllMessagesNotSeenQuery } from "@features/api/messengerApiSlice";
 
 import { FaUserFriends } from "react-icons/fa";
 import { FaFacebookMessenger } from "react-icons/fa6";

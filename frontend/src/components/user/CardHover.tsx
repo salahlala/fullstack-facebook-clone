@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+
 import FollowButton from "@components/user/FollowButton";
 import MessageButton from "@components/messenger/MessageButton";
 import { Avatar, AvatarFallback, AvatarImage } from "@components/ui/avatar";
@@ -9,9 +10,7 @@ import {
   HoverCardPortal,
 } from "@components/ui/hover-card";
 
-import { TUser } from "@typesFolder/authType";
-
-import defaultProfile from "@assets/default-profile.png";
+import type { TUser } from "@typesFolder/authType";
 
 interface CardHoverProps {
   user: TUser;
@@ -37,7 +36,7 @@ const CardHover = ({ user }: CardHoverProps) => {
           <div className="flex items-center gap-6">
             <Link to={`/app/profile/${user._id}`}>
               <Avatar className="w-[60px] h-[60px]">
-                <AvatarImage src={user.profileImg?.url || defaultProfile} />
+                <AvatarImage src={user.profileImg?.url} />
                 <AvatarFallback>
                   {user.username?.slice(0, 1).toUpperCase()}
                 </AvatarFallback>

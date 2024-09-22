@@ -1,12 +1,4 @@
 import { useState } from "react";
-import { closeDialog } from "@store/uiSlice";
-import { useAppDispatch } from "@store/hooks";
-import {
-  useCreatePostMutation,
-  useUpdatePostMutation,
-} from "@features/api/postApiSlice";
-
-import type { ApiError } from "@typesFolder/apiError";
 
 import {
   Dialog,
@@ -19,6 +11,17 @@ import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
 import { useToast } from "@components/ui/use-toast";
 import { Label } from "@components/ui/label";
+
+import type { ApiError } from "@typesFolder/apiError";
+
+import { closeDialog } from "@store/uiSlice";
+import { useAppDispatch } from "@store/hooks";
+
+import {
+  useCreatePostMutation,
+  useUpdatePostMutation,
+} from "@features/api/postApiSlice";
+
 import { FaUpload } from "react-icons/fa6";
 interface PostEditorFormProps {
   isDialogOpen?: boolean;
