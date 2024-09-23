@@ -1,0 +1,35 @@
+services:
+  server:
+    build: .
+    container_name: backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./config.env
+    depends_on:
+      - mongodb
+  client:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - server
+
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb_server
+    ports:
+      - "27017:27017"
+    env_file:
+      - ./config.env
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - mongodb-storage:/data/db
+volumes:
+  mongodb-storage:
