@@ -23,3 +23,10 @@
 - **Authentication**: JSON Web Tokens (JWT), bcrypt
 - **Storage**: Cloudinary (for image uploads)
 - **Styling**: Tailwind CSS , Shadcn UI
+
+## Preview 
+
+![App Preview](./frontend/src/assets/preview-4.png)
+![App Preview](./frontend/src/assets/preview-1.png)
+![App Preview](./frontend/src/assets/preview-2.png)
+![App Preview](./frontend/src/assets/preview-3.png)
